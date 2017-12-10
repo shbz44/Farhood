@@ -1,2 +1,4 @@
 django==1.11.6
 djangorestframework==3.7.1
+pillow
+pyjwt
