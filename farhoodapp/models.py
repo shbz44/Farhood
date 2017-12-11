@@ -29,7 +29,7 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser):
     image = models.ImageField(upload_to='images/', null=True)
     email = models.EmailField(unique=True)
-    first_name =  models.CharField(max_length=150)
+    first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     nick_name = models.CharField(max_length=150)
     username = models.CharField(max_length=50, unique=True)
@@ -84,6 +84,9 @@ class User(AbstractBaseUser):
     USERNAME_FIELD = 'email'
     objects = UserManager()
 
+    def __str__(self):
+        return str(self.id)
+
 
 class Event(models.Model):
     COFFEE = 'coffee'
@@ -102,7 +105,7 @@ class Event(models.Model):
         (SPORTS, 'Sports')
     )
     name = models.CharField(max_length=150)
-    type = models.CharField(max_length=150, choices=TYPE_CHOICES, default=COFFEE)
+    event_type = models.CharField(max_length=150, choices=TYPE_CHOICES, default=COFFEE)
     description = models.CharField(max_length=150)
     scheduled_time = models.DateTimeField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -111,11 +114,17 @@ class Event(models.Model):
     location_name = models.CharField(max_length=150)
     location_address = models.CharField(max_length=200)
 
+    def __str__(self):
+        return str(self.id)
+
 
 class Comment(models.Model):
     event = models.ForeignKey(Event)
     user = models.ForeignKey(User)
     message = models.CharField(max_length=200)
+
+    def __str__(self):
+        return str(self.id)
 
 
 class Action(models.Model):
@@ -132,8 +141,14 @@ class Action(models.Model):
     event = models.ForeignKey(Event)
     action_type = models.CharField(max_length=150, choices=ACTION_TYPE, default=GOOD)
 
+    def __str__(self):
+        return str(self.id)
+
 
 class EventMember(models.Model):
     user = models.ForeignKey(User)
     event = models.ForeignKey(Event)
     follow = models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.id)
