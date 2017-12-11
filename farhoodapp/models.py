@@ -14,7 +14,7 @@ class UserManager(BaseUserManager):
         user.save()
         return user
 
-    def create_superuser(self, email, password, **extra_fields):
+    def create_user(self, email, password, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
@@ -29,14 +29,14 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser):
     image = models.ImageField(upload_to='images/', null=True)
     email = models.EmailField(unique=True)
-    first_name = models.CharField(max_length=150)
-    last_name = models.CharField(max_length=150)
-    nick_name = models.CharField(max_length=150)
-    username = models.CharField(max_length=50, unique=True)
-    account_id = models.CharField(max_length=10)
+    first_name = models.CharField(max_length=150, null=True, blank=True)
+    last_name = models.CharField(max_length=150, null=True, blank=True)
+    nick_name = models.CharField(max_length=150, null=True, blank=True)
+    username = models.CharField(max_length=50)
+    account_id = models.CharField(max_length=10, null=True, blank=True)
     phone_number = models.CharField(max_length=150)
     temporary_profile = models.BooleanField(default=True)
-    ref_user = models.ManyToManyField('self', blank=True)
+    ref_user = models.ManyToManyField('self', null=True)
 
     is_staff = models.BooleanField(
         ('staff status'),
@@ -96,7 +96,7 @@ class Event(models.Model):
     LOGO = 'logo'
     SPORTS = 'sports'
 
-    TYPE_CHOICES = (
+    EVENT_TYPE = (
         (COFFEE, 'Coffee'),
         (BEAR, 'Bear'),
         (SHOPPINGS, 'Shopping'),
@@ -105,7 +105,7 @@ class Event(models.Model):
         (SPORTS, 'Sports')
     )
     name = models.CharField(max_length=150)
-    event_type = models.CharField(max_length=150, choices=TYPE_CHOICES, default=COFFEE)
+    event_type = models.CharField(max_length=150, choices=EVENT_TYPE, default=COFFEE)
     description = models.CharField(max_length=150)
     scheduled_time = models.DateTimeField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
