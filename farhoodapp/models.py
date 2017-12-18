@@ -2,8 +2,6 @@ from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.db import models
 
 
-# Create your models here.
-
 class UserManager(BaseUserManager):
     def _create_user(self, email, password, **extra_fields):
         if not email:
@@ -34,8 +32,9 @@ class User(AbstractBaseUser):
     nick_name = models.CharField(max_length=150, null=True, blank=True)
     username = models.CharField(max_length=50)
     account_id = models.CharField(max_length=10, null=True, blank=True)
-    phone_number = models.CharField(max_length=150)
+    phone_number = models.CharField(max_length=150, null=True, blank=True)
     temporary_profile = models.BooleanField(default=True)
+    address = models.CharField(max_length=150, null=True, blank=True)
     ref_user = models.ManyToManyField('self', null=True)
 
     is_staff = models.BooleanField(
@@ -107,12 +106,13 @@ class Event(models.Model):
     name = models.CharField(max_length=150)
     event_type = models.CharField(max_length=150, choices=EVENT_TYPE, default=COFFEE)
     description = models.CharField(max_length=150)
-    scheduled_time = models.DateTimeField(auto_now_add=True)
+    scheduled_time = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6)  # Or we can make it Float Field
-    latitude = models.DecimalField(max_digits=9, decimal_places=6)  # Or we can make it Float Field
+    longitude = models.FloatField(null=True, blank=True, default=0.0)
+    latitude = models.FloatField(null=True, blank=True, default=0.0)
     location_name = models.CharField(max_length=150)
     location_address = models.CharField(max_length=200)
+    user = models.ForeignKey(User)
 
     def __str__(self):
         return str(self.id)
