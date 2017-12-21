@@ -2,15 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ae814c0b-9a02-4a1e-a762-f2f7929e9228" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/farhood/email_backend.py" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/db.sqlite3" afterPath="$PROJECT_DIR$/db.sqlite3" />
-      <change beforePath="$PROJECT_DIR$/farhood/settings.py" afterPath="$PROJECT_DIR$/farhood/settings.py" />
-      <change beforePath="$PROJECT_DIR$/farhoodapp/models.py" afterPath="$PROJECT_DIR$/farhoodapp/models.py" />
-      <change beforePath="$PROJECT_DIR$/farhoodapp/serializers.py" afterPath="$PROJECT_DIR$/farhoodapp/serializers.py" />
-      <change beforePath="$PROJECT_DIR$/farhoodapp/services.py" afterPath="$PROJECT_DIR$/farhoodapp/services.py" />
-      <change beforePath="$PROJECT_DIR$/farhoodapp/urls.py" afterPath="$PROJECT_DIR$/farhoodapp/urls.py" />
-      <change beforePath="$PROJECT_DIR$/farhoodapp/views.py" afterPath="$PROJECT_DIR$/farhoodapp/views.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -104,8 +96,8 @@
       <file leaf-file-name="views.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/farhoodapp/views.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="218">
-              <caret line="217" column="36" lean-forward="true" selection-start-line="217" selection-start-column="36" selection-end-line="217" selection-end-column="36" />
+            <state relative-caret-position="266">
+              <caret line="220" column="33" lean-forward="true" selection-start-line="220" selection-start-column="33" selection-end-line="220" selection-end-column="33" />
               <folding>
                 <element signature="e#0#36#0" expanded="true" />
               </folding>
@@ -313,7 +305,14 @@
       <option name="project" value="LOCAL" />
       <updated>1513602425754</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Import Contacts.">
+      <created>1513869240375</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1513869240375</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TodoView">
@@ -355,7 +354,8 @@
     <MESSAGE value="Tables have registered." />
     <MESSAGE value="type updated." />
     <MESSAGE value="SignUp api." />
-    <option name="LAST_COMMIT_MESSAGE" value="SignUp api." />
+    <MESSAGE value="Import Contacts." />
+    <option name="LAST_COMMIT_MESSAGE" value="Import Contacts." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -790,8 +790,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/farhoodapp/views.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="218">
-          <caret line="217" column="36" lean-forward="true" selection-start-line="217" selection-start-column="36" selection-end-line="217" selection-end-column="36" />
+        <state relative-caret-position="266">
+          <caret line="220" column="33" lean-forward="true" selection-start-line="220" selection-start-column="33" selection-end-line="220" selection-end-column="33" />
           <folding>
             <element signature="e#0#36#0" expanded="true" />
           </folding>
