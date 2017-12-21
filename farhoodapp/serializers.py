@@ -1,30 +1,47 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
-
 from farhoodapp.models import Event, User, Comment, Action, EventMember
 
 
 class UserSerializer(serializers.ModelSerializer):
     # SignUp API
     def create(self, validated_data):
-        user = User.objects._create_user(validated_data['email'], validated_data['password'])
+        # import pdb;pdb.set_trace()
+        user = User.objects._create_user(validated_data.get('email'), validated_data.get('password'))
+        if validated_data.get('phone_number'):
+            user.phone_number = validated_data.get('phone_number')
         return user
+
     # Create Profile API
-    def update(self, instance, validated_data):
-        instance.email = validated_data.get('email', None) or instance.email
-        instance.first_name = validated_data.get('first_name', None) or instance.first_name
-        instance.last_name = validated_data.get('last_name', None) or instance.last_name
-        instance.phone_number = validated_data.get('phone_number', None) or instance.phone_number
-        instance.address = validated_data.get('address', None) or instance.address
-        instance.nick_name = validated_data.get('nick_name', None) or instance.nick_name
-        instance.image = validated_data.get('image', None) or instance.image
-        return instance
+    # def update(self, instance, validated_data):
+    #     instance.email = validated_data.get('email', None) or instance.email
+    #     instance.password = validated_data.get('password', None) or instance.password
+    #     instance.first_name = validated_data.get('first_name', None) or instance.first_name
+    #     instance.last_name = validated_data.get('last_name', None) or instance.last_name
+    #     instance.phone_number = validated_data.get('phone_number', None) or instance.phone_number
+    #     instance.address = validated_data.get('address', None) or instance.address
+    #     instance.nick_name = validated_data.get('nick_name', None) or instance.nick_name
+    #     instance.image = validated_data.get('image', None) or instance.image
+    #     return instance
 
     class Meta:
         model = User
-        exclude = ('username', 'phone_number', 'ref_user')
+        exclude = ('username', 'ref_user')
 
-#Get User All Events
+
+class TemporaryUserSerializer(serializers.ModelSerializer):
+    # Import Contacts
+    def create(self, validated_data):
+        user = User.objects._create_user(validated_data.get('email'), password="123456789")
+        return user
+
+    class Meta:
+        model = User
+        exclude = ('username', 'ref_user')
+
+
+
+# Get User All Events
 class UserEventSerializer(ModelSerializer):
     class Meta:
         model = Event
@@ -36,27 +53,32 @@ class EventFriendSerializer(ModelSerializer):
         model = Event
         fields = ('id', 'name', 'user')
 
+
 class UserFriendSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
 
-#Get All Events those are Following
+
+# Get All Events those are Following
 class EventMemberFriendSerializer(ModelSerializer):
     event = EventFriendSerializer()
+
     # user = UserFriendSerializer()
 
     class Meta:
         model = EventMember
-        fields = ('id', 'follow', 'event',)# 'user', )
+        fields = ('id', 'follow', 'event',)  # 'user', )
 
-#Get all comments on a certain Event
+
+# Get all comments on a certain Event
 class EventCommentSerializer(ModelSerializer):
     class Meta:
         model = Comment
         fields = '__all__'
 
-#Get all actions submitted on a certain even
+
+# Get all actions submitted on a certain even
 class EventActionSerializer(ModelSerializer):
     class Meta:
         model = Action
@@ -146,7 +168,8 @@ class UnfollowEventMemberSerializer(ModelSerializer):
         model = EventMember
         fields = '__all__'
 
-#Add Event Member API
+
+# Add Event Member API
 class AddEventMemberSerializer(ModelSerializer):
     def create(self, validated_data):
         member = EventMember.objects.create(event=validated_data.get('event'),

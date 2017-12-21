@@ -10,8 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
-#username: farhoodapp
-#password: pass12345
+# username: farhoodapp
+# password: pass12345
 
 import os
 
@@ -30,6 +30,9 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 # Application definition
+AUTH_USER_MODEL = 'farhoodapp.User'
+
+# AUTHENTICATION_BACKENDS =['farhood.email_backend.SettingsBackend']
 
 INSTALLED_APPS = [
     'farhoodapp.apps.FarhoodappConfig',
@@ -40,20 +43,31 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    # 'rest_framework.authtoken',
+    'rest_framework.authtoken',
+
 ]
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_PARSER_CLASSES': (
+        'rest_framework.parsers.JSONParser',
+    )
+}
 
+#
+# class SettingsBackend:
+#     def authenticate(self, request, email=None, password=None):
+#         # Check the email/password and return a user.
+#         ...
 
-# REST_FRAMEWORK = {
-#     'DEFAULT_PERMISSION_CLASSES': (
-#         'rest_framework.permissions.IsAuthenticated',
-#     ),
-#     'DEFAULT_AUTHENTICATION_CLASSES': (
-#         'rest_framework.authentication.TokenAuthentication',
-#         'rest_framework.authentication.BasicAuthentication',
-#         'rest_framework.authentication.SessionAuthentication',
-#     )
-# }
+AUTHENTICATION_BACKENDS = (
+    'farhood.email_backend.LoginUsingEmailAsUsernameBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -130,3 +144,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# STATICFILES_DIRS = (
+#     os.path.join(BASE_DIR, "static"),
+# )
