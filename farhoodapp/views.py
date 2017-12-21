@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import obtain_auth_token
-from rest_framework.parsers import JSONParser
+from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -12,8 +12,8 @@ from farhoodapp.serializers import (UserSerializer, EventSerializer, CommentSeri
                                     AddEventMemberSerializer, UnfollowEventMemberSerializer,
                                     FollowEventMemberSerializer, TemporaryUserSerializer)
 
-from farhoodapp.services import get_user_event, get_event_comments, get_event_actions, get_event_member, \
-    get_follow_events, get_unfollow_events, get_all_friend_events
+from farhoodapp.services import (get_user_event, get_event_comments, get_event_actions, get_follow_events,
+                                 get_unfollow_events, get_all_friend_events, remove_event_member, )
 
 
 # SignUp API
@@ -37,50 +37,50 @@ class UserCreate(APIView):
 # Create Profile API
 class CreateProfileUser(APIView):
     def put(self, request, format='json'):
-        # import pdb;pdb.set_trace()
-
-        user_id = request.POST.get('user_id')
-        if user_id:
-            user_data = User.objects.get(id=user_id)
-            serializer = UserSerializer(user_data, data=request.data)
-            if serializer.is_valid():
-                user = serializer.save()
-                return Response({"Profile Created": UserSerializer(user).data}, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user_data = request.user
+        serializer = UserSerializer(user_data, data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response({"Profile Created": UserSerializer(user).data}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # Create Event API
 class EventCreateView(APIView):
     def post(self, request, format='json'):
-        user_id = request.POST.get('user')
-        if user_id:
-            serializer = EventSerializer(data=request.data)
-            if serializer.is_valid():
-                event = serializer.save()
-                return Response({"Event Created": EventSerializer(event).data}, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        parser_classes = (MultiPartParser,)
+        request_data = request.data.copy()
+        request_data['user'] = request.user.id
+        serializer = EventSerializer(data=request_data)
+        if serializer.is_valid():
+            event = serializer.save()
+            return Response({"Event Created": EventSerializer(event).data}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # Edit Event API
 class EventEditView(APIView):
     def post(self, request, format='json'):
-        user_id = request.POST.get('user')
-        if user_id:
-            event_data = Event.objects.get(user=user_id)
-            serializer = EventSerializer(event_data, data=request.data)
-            if serializer.is_valid():
-                event = serializer.save()
-                return Response({"Event Edited": EventSerializer(event).data}, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # import pdb;pdb.set_trace()
+        request_data = request.data.copy()
+        request_data['user'] = request.user.id
+        id = request.POST.get('id')
+        event_data = Event.objects.get(id=id, user=request.user)
+        serializer = EventSerializer(event_data, data=request_data)
+        if serializer.is_valid():
+            event = serializer.save()
+            return Response({"Event Edited": EventSerializer(event).data}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # Create Comment View
 class CreateCommentView(APIView):
     def post(self, request, format='json'):
-        user_id = int(request.POST.get('user'))
+        request_data = request.data.copy()
+        request_data['user'] = request.user.id
         event_id = int(request.POST.get('event'))
-        if user_id and event_id:
-            serializer = CommentSerializer(data=request.data)
+        if event_id:
+            serializer = CommentSerializer(data=request_data)
             if serializer.is_valid():
                 comment = serializer.save()
                 return Response({"Comment Created": CommentSerializer(comment).data}, status=status.HTTP_201_CREATED)
@@ -90,10 +90,11 @@ class CreateCommentView(APIView):
 # Create Action API
 class CreateActionView(APIView):
     def post(self, request, format='json'):
-        user_id = int(request.POST.get('user'))
+        request_data = request.data.copy()
+        request_data['user'] = request.user.id
         event_id = int(request.POST.get('event'))
-        if user_id and event_id:
-            serializer = ActionSerializer(data=request.data)
+        if event_id:
+            serializer = ActionSerializer(data=request_data)
             if serializer.is_valid():
                 action = serializer.save()
                 return Response({"Action Created": ActionSerializer(action).data}, status=status.HTTP_201_CREATED)
@@ -103,11 +104,12 @@ class CreateActionView(APIView):
 # Create Event Member who is Following
 class CreateFollowEventMemberView(APIView):
     def post(self, request, format='json'):
-        user_id = int(request.POST.get('user'))
+        request_data = request.data.copy()
+        request_data['user'] = request.user.id
         event_id = int(request.POST.get('event'))
         # import pdb;pdb.set_trace()
-        if user_id and event_id:
-            serializer = FollowEventMemberSerializer(data=request.data)
+        if event_id:
+            serializer = FollowEventMemberSerializer(data=request_data)
             if serializer.is_valid():
                 member = serializer.save()
                 return Response({"Event Member Created which is Following": FollowEventMemberSerializer(member).data},
@@ -118,13 +120,13 @@ class CreateFollowEventMemberView(APIView):
 # Create Event Member who is not Following
 class CreateUnfollowEventMemberView(APIView):
     def post(self, request, format='json'):
-        user_id = int(request.POST.get('user'))
+        request_data = request.data.copy()
+        request_data['user'] = request.user.id
         event_id = int(request.POST.get('event'))
-        # import pdb;pdb.set_trace()
-        if user_id and event_id:
-            check_member = EventMember.objects.filter(event_id=event_id, user_id=user_id).first()
+        if event_id:
+            check_member = EventMember.objects.filter(event_id=event_id, user=request.user).first()
             if not check_member:
-                serializer = UnfollowEventMemberSerializer(data=request.data)
+                serializer = UnfollowEventMemberSerializer(data=request_data)
                 if serializer.is_valid():
                     member = serializer.save()
                     return Response(
@@ -137,13 +139,14 @@ class CreateUnfollowEventMemberView(APIView):
 # Add Event Member API
 class AddEventMemberView(APIView):
     def post(self, request, format='json'):
-        user_id = int(request.POST.get('user'))
+        request_data = request.data.copy()
+        request_data['user'] = request.user.id
         event_id = int(request.POST.get('event'))
         # import pdb;pdb.set_trace()
-        if user_id and event_id:
-            member = EventMember.objects.filter(event_id=event_id, user_id=user_id).first()
+        if event_id:
+            member = EventMember.objects.filter(event_id=event_id, user=request.user).first()
             if not member:
-                serializer = AddEventMemberSerializer(data=request.data)
+                serializer = AddEventMemberSerializer(data=request_data)
                 # import pdb;pdb.set_trace()
                 if serializer.is_valid():
                     add_member = serializer.save()
@@ -156,18 +159,20 @@ class AddEventMemberView(APIView):
 # Remove Event Member API
 class RemoveEventMemberView(APIView):
     def post(self, request, format='json'):
-        event_id = int(request.POST.get('event'))
-        id = int(request.POST.get('id'))
         # import pdb;pdb.set_trace()
-        if event_id and id:
-            resp = get_event_member(event_id=event_id, id=id)
-            return Response(data=resp, status=status.HTTP_200_OK)
+        user_id = request.user.id
+        event_id = request.POST.get('event')
+        if event_id:
+            resp = remove_event_member(event_id=event_id, user_id=user_id)
+            return Response(resp, status=status.HTTP_200_OK)
 
 
 # Get User All Events
 class UserEventView(APIView):
+    # permission_classes = (AllowAny,)
     def get(self, request):
-        user_id = request.GET.get('user_id', 1)
+        # user_id = request.GET.get('user_id', 1)
+        user_id = request.user.id
         resp = {"data": get_user_event(user_id=user_id)}
         return Response(data=resp, status=status.HTTP_200_OK)
 
@@ -175,32 +180,36 @@ class UserEventView(APIView):
 # Get all comments on a certain Event
 class CommentEventView(APIView):
     def get(self, request):
+        user_id = request.user.id
         event_id = request.GET.get('event_id', 1)
-        resp = {"data": get_event_comments(event_id=event_id)}
+        resp = {"data": get_event_comments(event_id=event_id, user_id=user_id)}
         return Response(data=resp, status=status.HTTP_200_OK)
 
 
 # Get all actions submitted on a certain event
 class EventActionView(APIView):
     def get(self, request):
+        user_id = request.user.id
         event_id = request.GET.get('event_id', 1)
-        resp = {"data": get_event_actions(event_id=event_id)}
+        resp = {"data": get_event_actions(event_id=event_id, user_id=user_id)}
         return Response(data=resp, status=status.HTTP_200_OK)
 
 
 # Get All Events those are Following
 class FollowEventView(APIView):
     def get(self, request):
+        user_id = request.user.id
         follow = request.GET.get('follow', True)
-        resp = {"data": get_follow_events(follow=follow)}
+        resp = {"data": get_follow_events(follow=follow, user_id=user_id)}
         return Response(data=resp, status=status.HTTP_200_OK)
 
 
 # Get All Events those are not Following
 class UnfollowEventView(APIView):
     def get(self, request):
+        user_id = request.user.id
         follow = request.GET.get('follow', False)
-        resp = {"data": get_unfollow_events(follow=follow)}
+        resp = {"data": get_unfollow_events(follow=follow, user_id=user_id)}
         return Response(data=resp, status=status.HTTP_200_OK)
 
 
@@ -212,20 +221,21 @@ class FriendEventView(APIView):
 
 
 class ImportContacts(APIView):
-    permission_classes = (AllowAny,)
     parser_classes = (JSONParser,)
+
     def post(self, request):
-        # import pdb;pdb.set_trace()
+        import pdb;pdb.set_trace()
         dict_list = request.data
+        users = request.user.ref_user.all()
         for item in dict_list:
             email = item['email']
-            is_user = User.objects.filter(email=email).first()
-            if is_user:
-                User.ref_user.add(is_user)
-            elif not is_user:
-                data = {"email":email, "password":"123456789"}
+            friend = User.objects.filter(email=email).first()
+            if friend and friend not in users:
+                request.user.ref_user.add(friend)
+            elif not friend:
+                data = {"email": email, "password": "123456789"}
                 serializer = TemporaryUserSerializer(data=data)
                 if serializer.is_valid():
                     User.temporary_profile = True
                     serializer.save()
-        return Response("Temporary User Created.", status=status.HTTP_201_CREATED)
+                return Response("Temporary User Created.", status=status.HTTP_201_CREATED)

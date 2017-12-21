@@ -101,16 +101,16 @@ class EventSerializer(ModelSerializer):
         return event
 
     # Edit Event API
-    def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', None) or instance.name
-        instance.event_type = validated_data.get('event_type', None) or instance.event_type
-        instance.description = validated_data.get('description', None) or instance.description
-        instance.scheduled_time = validated_data.get('scheduled_time', None) or instance.scheduled_time
-        instance.longitude = validated_data.get('longitude', None) or instance.longitude
-        instance.latitude = validated_data.get('latitude', None) or instance.latitude
-        instance.location_name = validated_data.get('location_name', None) or instance.location_name
-        instance.location_address = validated_data.get('location_address', None) or instance.location_address
-        return instance
+    # def update(self, instance, validated_data):
+    #     instance.name = validated_data.get('name', None) or instance.name
+    #     instance.event_type = validated_data.get('event_type', None) or instance.event_type
+    #     instance.description = validated_data.get('description', None) or instance.description
+    #     instance.scheduled_time = validated_data.get('scheduled_time', None) or instance.scheduled_time
+    #     instance.longitude = validated_data.get('longitude', None) or instance.longitude
+    #     instance.latitude = validated_data.get('latitude', None) or instance.latitude
+    #     instance.location_name = validated_data.get('location_name', None) or instance.location_name
+    #     instance.location_address = validated_data.get('location_address', None) or instance.location_address
+    #     return instance
 
     class Meta:
         model = Event
