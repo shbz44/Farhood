@@ -6,7 +6,6 @@ from farhoodapp.models import Event, User, Comment, Action, EventMember
 class UserSerializer(serializers.ModelSerializer):
     # SignUp API
     def create(self, validated_data):
-        # import pdb;pdb.set_trace()
         user = User.objects._create_user(validated_data.get('email'), validated_data.get('password'))
         if validated_data.get('phone_number'):
             user.phone_number = validated_data.get('phone_number')
@@ -38,7 +37,6 @@ class TemporaryUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         exclude = ('username', 'ref_user')
-
 
 
 # Get User All Events
@@ -115,8 +113,6 @@ class EventSerializer(ModelSerializer):
     class Meta:
         model = Event
         exclude = ('created_at',)
-        # fields = ('name', 'event_type', 'description', 'scheduled_time', 'longitude', 'latitude', 'location_name',
-        #     'location_address')
 
 
 class CommentSerializer(ModelSerializer):

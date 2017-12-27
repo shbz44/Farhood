@@ -1,7 +1,3 @@
-from django.http import JsonResponse
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.authtoken.models import Token
-from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
@@ -13,7 +9,7 @@ from farhoodapp.serializers import (UserSerializer, EventSerializer, CommentSeri
                                     FollowEventMemberSerializer, TemporaryUserSerializer)
 
 from farhoodapp.services import (get_user_event, get_event_comments, get_event_actions, get_follow_events,
-                                 get_unfollow_events, get_all_friend_events, remove_event_member, )
+                                 get_unfollow_events, remove_event_member, )
 
 
 # SignUp API
@@ -61,7 +57,6 @@ class EventCreateView(APIView):
 # Edit Event API
 class EventEditView(APIView):
     def post(self, request, format='json'):
-        # import pdb;pdb.set_trace()
         request_data = request.data.copy()
         request_data['user'] = request.user.id
         id = request.POST.get('id')
@@ -107,7 +102,6 @@ class CreateFollowEventMemberView(APIView):
         request_data = request.data.copy()
         request_data['user'] = request.user.id
         event_id = int(request.POST.get('event'))
-        # import pdb;pdb.set_trace()
         if event_id:
             serializer = FollowEventMemberSerializer(data=request_data)
             if serializer.is_valid():
@@ -142,7 +136,6 @@ class AddEventMemberView(APIView):
         request_data = request.data.copy()
         request_data['user'] = request.user.id
         event_id = int(request.POST.get('event'))
-        # import pdb;pdb.set_trace()
         if event_id:
             member = EventMember.objects.filter(event_id=event_id, user=request.user).first()
             if not member:
@@ -159,7 +152,6 @@ class AddEventMemberView(APIView):
 # Remove Event Member API
 class RemoveEventMemberView(APIView):
     def post(self, request, format='json'):
-        # import pdb;pdb.set_trace()
         user_id = request.user.id
         event_id = request.POST.get('event')
         if event_id:
@@ -171,7 +163,6 @@ class RemoveEventMemberView(APIView):
 class UserEventView(APIView):
     # permission_classes = (AllowAny,)
     def get(self, request):
-        # user_id = request.GET.get('user_id', 1)
         user_id = request.user.id
         resp = {"data": get_user_event(user_id=user_id)}
         return Response(data=resp, status=status.HTTP_200_OK)
@@ -213,18 +204,10 @@ class UnfollowEventView(APIView):
         return Response(data=resp, status=status.HTTP_200_OK)
 
 
-class FriendEventView(APIView):
-    def get(self, request):
-        event_id = request.GET.get('event_id', 1)
-        resp = {"data": get_all_friend_events(event_id=event_id)}
-        return Response(data=resp, status=status.HTTP_200_OK)
-
-
 class ImportContacts(APIView):
     parser_classes = (JSONParser,)
 
     def post(self, request):
-        import pdb;pdb.set_trace()
         dict_list = request.data
         users = request.user.ref_user.all()
         for item in dict_list:

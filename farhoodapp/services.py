@@ -32,6 +32,7 @@ def remove_event_member(event_id, user_id):
         member.save()
     return 'successfully unfollow'
 
+
 # Get All Events those are Following
 def get_follow_events(follow, user_id):
     follow_events = EventMember.objects.filter(follow=follow, user_id=user_id)
@@ -43,10 +44,4 @@ def get_follow_events(follow, user_id):
 def get_unfollow_events(follow, user_id):
     unfollow_events = EventMember.objects.filter(follow=follow, user_id=user_id)
     result = EventMemberFriendSerializer(unfollow_events, many=True)
-    return result.data
-
-
-def get_all_friend_events(event_id, follow=True):
-    member = EventMember.objects.filter(event_id=event_id).first()
-    result = member.filter(follow)
     return result.data
