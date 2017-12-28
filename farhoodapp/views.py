@@ -10,7 +10,7 @@ from farhoodapp.serializers import (UserSerializer, EventSerializer, CommentSeri
 
 from farhoodapp.services import (get_user_event, get_event_comments, get_event_actions, get_follow_events,
                                  get_unfollow_events, remove_event_member, )
-
+from farhoodapp.utils.all_responses import CustomResponse
 
 # SignUp API
 class UserCreate(APIView):
@@ -26,8 +26,10 @@ class UserCreate(APIView):
         serializer = UserSerializer(data=data)
         if serializer.is_valid():
             user = serializer.save()
-            return Response({"User Created": UserSerializer(user).data}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", UserSerializer(user).data)
+        return CustomResponse.create_response(False, status.HTTP_400_BAD_REQUEST, "User already exists", {})
+        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# return Response({"User Created": UserSerializer(user).data}, status=status.HTTP_201_CREATED)
 
 
 # Create Profile API
@@ -37,7 +39,8 @@ class CreateProfileUser(APIView):
         serializer = UserSerializer(user_data, data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            return Response({"Profile Created": UserSerializer(user).data}, status=status.HTTP_201_CREATED)
+            return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", UserSerializer(user).data)
+            # return Response({"Profile Created": UserSerializer(user).data}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -50,7 +53,8 @@ class EventCreateView(APIView):
         serializer = EventSerializer(data=request_data)
         if serializer.is_valid():
             event = serializer.save()
-            return Response({"Event Created": EventSerializer(event).data}, status=status.HTTP_201_CREATED)
+            return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", EventSerializer(event).data)
+            # return Response({"Event Created": EventSerializer(event).data}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -64,7 +68,8 @@ class EventEditView(APIView):
         serializer = EventSerializer(event_data, data=request_data)
         if serializer.is_valid():
             event = serializer.save()
-            return Response({"Event Edited": EventSerializer(event).data}, status=status.HTTP_201_CREATED)
+            return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", EventSerializer(event).data)
+            # return Response({"Event Edited": EventSerializer(event).data}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -78,7 +83,8 @@ class CreateCommentView(APIView):
             serializer = CommentSerializer(data=request_data)
             if serializer.is_valid():
                 comment = serializer.save()
-                return Response({"Comment Created": CommentSerializer(comment).data}, status=status.HTTP_201_CREATED)
+                return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", CommentSerializer(comment).data)
+                # return Response({"Comment Created": CommentSerializer(comment).data}, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -92,7 +98,8 @@ class CreateActionView(APIView):
             serializer = ActionSerializer(data=request_data)
             if serializer.is_valid():
                 action = serializer.save()
-                return Response({"Action Created": ActionSerializer(action).data}, status=status.HTTP_201_CREATED)
+                return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", ActionSerializer(action).data)
+                # return Response({"Action Created": ActionSerializer(action).data}, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -106,8 +113,9 @@ class CreateFollowEventMemberView(APIView):
             serializer = FollowEventMemberSerializer(data=request_data)
             if serializer.is_valid():
                 member = serializer.save()
-                return Response({"Event Member Created which is Following": FollowEventMemberSerializer(member).data},
-                                status=status.HTTP_201_CREATED)
+                return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", FollowEventMemberSerializer(member).data)
+                # return Response({"Event Member Created which is Following": FollowEventMemberSerializer(member).data},
+                #                 status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -123,9 +131,12 @@ class CreateUnfollowEventMemberView(APIView):
                 serializer = UnfollowEventMemberSerializer(data=request_data)
                 if serializer.is_valid():
                     member = serializer.save()
-                    return Response(
-                        {"Event Member Created which is not Following": UnfollowEventMemberSerializer(member).data},
-                        status=status.HTTP_201_CREATED)
+                    return CustomResponse.create_response(True, status.HTTP_200_OK, "Success",
+                                                          UnfollowEventMemberSerializer(member).data)
+
+                    # return Response(
+                    #     {"Event Member Created which is not Following": UnfollowEventMemberSerializer(member).data},
+                    #     status=status.HTTP_201_CREATED)
             else:
                 return Response({'error': 'Member Already Exists'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -143,8 +154,10 @@ class AddEventMemberView(APIView):
                 # import pdb;pdb.set_trace()
                 if serializer.is_valid():
                     add_member = serializer.save()
-                    return Response({"Event Member Added": AddEventMemberSerializer(add_member).data},
-                                    status=status.HTTP_201_CREATED)
+                    return CustomResponse.create_response(True, status.HTTP_200_OK, "Success",
+                                                          AddEventMemberSerializer(add_member).data)
+                    # return Response({"Event Member Added": AddEventMemberSerializer(add_member).data},
+                    #                 status=status.HTTP_201_CREATED)
             else:
                 return Response("Member Already Exists")
 
@@ -156,7 +169,8 @@ class RemoveEventMemberView(APIView):
         event_id = request.POST.get('event')
         if event_id:
             resp = remove_event_member(event_id=event_id, user_id=user_id)
-            return Response(resp, status=status.HTTP_200_OK)
+            return CustomResponse.create_response(True, status.HTTP_200_OK, "Event Member Removed", resp)
+            # return Response(resp, status=status.HTTP_200_OK)
 
 
 # Get User All Events
@@ -164,8 +178,8 @@ class UserEventView(APIView):
     # permission_classes = (AllowAny,)
     def get(self, request):
         user_id = request.user.id
-        resp = {"data": get_user_event(user_id=user_id)}
-        return Response(data=resp, status=status.HTTP_200_OK)
+        resp = get_user_event(user_id=user_id)
+        return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", resp)
 
 
 # Get all comments on a certain Event
@@ -174,7 +188,9 @@ class CommentEventView(APIView):
         user_id = request.user.id
         event_id = request.GET.get('event_id', 1)
         resp = {"data": get_event_comments(event_id=event_id, user_id=user_id)}
-        return Response(data=resp, status=status.HTTP_200_OK)
+        return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", resp)
+
+        # return Response(data=resp, status=status.HTTP_200_OK)
 
 
 # Get all actions submitted on a certain event
@@ -183,7 +199,9 @@ class EventActionView(APIView):
         user_id = request.user.id
         event_id = request.GET.get('event_id', 1)
         resp = {"data": get_event_actions(event_id=event_id, user_id=user_id)}
-        return Response(data=resp, status=status.HTTP_200_OK)
+        return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", resp)
+
+        # return Response(data=resp, status=status.HTTP_200_OK)
 
 
 # Get All Events those are Following
@@ -192,7 +210,9 @@ class FollowEventView(APIView):
         user_id = request.user.id
         follow = request.GET.get('follow', True)
         resp = {"data": get_follow_events(follow=follow, user_id=user_id)}
-        return Response(data=resp, status=status.HTTP_200_OK)
+        return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", resp)
+
+        # return Response(data=resp, status=status.HTTP_200_OK)
 
 
 # Get All Events those are not Following
@@ -201,7 +221,9 @@ class UnfollowEventView(APIView):
         user_id = request.user.id
         follow = request.GET.get('follow', False)
         resp = {"data": get_unfollow_events(follow=follow, user_id=user_id)}
-        return Response(data=resp, status=status.HTTP_200_OK)
+        return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", resp)
+
+        # return Response(data=resp, status=status.HTTP_200_OK)
 
 
 class ImportContacts(APIView):
@@ -221,4 +243,6 @@ class ImportContacts(APIView):
                 if serializer.is_valid():
                     User.temporary_profile = True
                     serializer.save()
-                return Response("Temporary User Created.", status=status.HTTP_201_CREATED)
+                return CustomResponse.create_response(True, status.HTTP_200_OK, "Temporary User Created", {})
+
+                # return Response("Temporary User Created.", status=status.HTTP_201_CREATED)
