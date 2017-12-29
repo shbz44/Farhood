@@ -241,12 +241,13 @@ class ImportContacts(APIView):
         users = request.user.ref_user.all()
         for item in dict_list:
             email = item['email']
-            friend = User.objects.filter(email=email).first()
+            phone_number = item['phone_number']
+            friend = User.objects.filter(email=email, phone_number=phone_number).first()
             if friend and friend not in users:
                 request.user.ref_user.add(friend)
                 # return CustomResponse.create_response(True, status.HTTP_200_OK, "This User already exists", {})
             elif not friend:
-                data = {"email": email, "password": "123456789"}
+                data = {"email": email, "phone_number":phone_number, "password": "123456789"}
                 serializer = TemporaryUserSerializer(data=data)
                 if serializer.is_valid():
                     User.temporary_profile = True

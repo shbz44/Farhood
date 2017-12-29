@@ -30,8 +30,13 @@ class UserSerializer(serializers.ModelSerializer):
 
 class TemporaryUserSerializer(serializers.ModelSerializer):
     # Import Contacts
+    # def create(self, validated_data):
+    #     user = User.objects._create_user(validated_data.get('email'), password="123456789")
+    #     return user
     def create(self, validated_data):
-        user = User.objects._create_user(validated_data.get('email'), password="123456789")
+        user = User.objects._create_user(validated_data.get('email'), password="12345678")
+        if validated_data.get('phone_number'):
+            user.phone_number = validated_data.get('phone_number')
         return user
 
     class Meta:
