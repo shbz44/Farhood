@@ -2,7 +2,7 @@ from django.conf.urls import url
 from farhoodapp.views import (UserCreate, CreateProfileUser, UserEventView, EventCreateView, EventEditView,
                               CommentEventView, CreateCommentView, CreateActionView, CreateFollowEventMemberView,
                               EventActionView, RemoveEventMemberView, AddEventMemberView, CreateUnfollowEventMemberView,
-                              FollowEventView, UnfollowEventView, ImportContacts)
+                              FollowEventView, UnfollowEventView, ImportContacts, ContactsView)
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -62,5 +62,7 @@ urlpatterns = [
                   url(r'^user/event/$', UserEventView.as_view()),
 
                   url(r'^contacts/$', ImportContacts.as_view()),
+
+                  url(r'^get/contacts/$', ContactsView.as_view()),
 
               ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

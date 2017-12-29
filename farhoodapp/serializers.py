@@ -38,6 +38,12 @@ class TemporaryUserSerializer(serializers.ModelSerializer):
         model = User
         exclude = ('username', 'ref_user')
 
+class ContactsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fileds = ('ref_user', )
+
 
 # Get User All Events
 class UserEventSerializer(ModelSerializer):

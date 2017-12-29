@@ -1,6 +1,6 @@
-from farhoodapp.models import Event, Comment, Action, EventMember
+from farhoodapp.models import Event, Comment, Action, EventMember, User
 from farhoodapp.serializers import (UserEventSerializer, EventCommentSerializer, EventActionSerializer,
-                                    EventMemberFriendSerializer)
+                                    EventMemberFriendSerializer, ContactsSerializer)
 
 
 # Get User All Events
@@ -44,4 +44,10 @@ def get_follow_events(follow, user_id):
 def get_unfollow_events(follow, user_id):
     unfollow_events = EventMember.objects.filter(follow=follow, user_id=user_id)
     result = EventMemberFriendSerializer(unfollow_events, many=True)
+    return result.data
+
+
+def get_contact_list(user_id):
+    contacts = User.objects.filter(user_id=user_id)
+    result = ContactsSerializer(contacts, many=True)
     return result.data
