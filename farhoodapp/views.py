@@ -234,8 +234,9 @@ class UnfollowEventView(APIView):
 
 class ImportContacts(APIView):
     parser_classes = (JSONParser,)
-
+# import pdb;pdb.set_trace()
     def post(self, request):
+        # import pdb;pdb.set_trace()
         dict_list = request.data
         users = request.user.ref_user.all()
         for item in dict_list:
@@ -243,18 +244,20 @@ class ImportContacts(APIView):
             friend = User.objects.filter(email=email).first()
             if friend and friend not in users:
                 request.user.ref_user.add(friend)
+                # return CustomResponse.create_response(True, status.HTTP_200_OK, "This User already exists", {})
             elif not friend:
                 data = {"email": email, "password": "123456789"}
                 serializer = TemporaryUserSerializer(data=data)
                 if serializer.is_valid():
                     User.temporary_profile = True
                     serializer.save()
-                return CustomResponse.create_response(True, status.HTTP_200_OK, "Temporary User Created", {})
+        return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", {})
+        # return CustomResponse.create_response(True, status.HTTP_200_OK, "This User already exists", {})
 
                 # return Response("Temporary User Created.", status=status.HTTP_201_CREATED)
 
 class ContactsView(APIView):
     def get(self, request):
-        user_id = request.user.id
-        resp = get_contact_list(user_id=user_id)
+        id = request.user.id
+        resp = get_contact_list(id=id)
         return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", resp)

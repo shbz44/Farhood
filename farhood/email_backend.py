@@ -1,5 +1,7 @@
 from django.contrib.auth.hashers import check_password
 from farhoodapp.models import User
+# from django.db.models import Q
+
 
 class LoginUsingEmailAsUsernameBackend(object):
   supports_object_permissions = False
