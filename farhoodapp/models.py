@@ -5,6 +5,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 
+from farhoodapp.utils.overwritestorage import OverwriteStorage
+
 
 class UserManager(BaseUserManager):
     def _create_user(self, email, password, **extra_fields):
@@ -28,8 +30,13 @@ class UserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
+def upload_profile_image(instance, filename):
+    user = User.objects.get(id=instance.id)
+    return '{}/{}/{}'.format("Users", user.id, 'profile_image.jpg')
+
+
 class User(AbstractBaseUser):
-    image = models.ImageField(upload_to='images/', null=True)
+    image = models.ImageField(upload_to=upload_profile_image, blank=True, null=True)
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=150, null=True, blank=True)
     last_name = models.CharField(max_length=150, null=True, blank=True)

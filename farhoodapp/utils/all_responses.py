@@ -20,8 +20,7 @@ class CustomResponse():
     @staticmethod
     def create_error_response(resCode, message):
         return Response(
-            {"status": 'false', "code": resCode, "message": message,
-             "data": 'data={"message":"","error": "' + message + '"}'},
+            {"status": 'false', "code": resCode, "message": message},
             status=status.HTTP_200_OK
         )
 

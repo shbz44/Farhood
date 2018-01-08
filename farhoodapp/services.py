@@ -1,12 +1,25 @@
 from farhoodapp.models import Event, Comment, Action, EventMember, User
 from farhoodapp.serializers import (UserEventSerializer, EventCommentSerializer, EventActionSerializer,
-                                    EventMemberFriendSerializer, ContactsSerializer)
+                                    EventMemberFriendSerializer, ContactsSerializer, UserProfileSerializer,
+                                    UserImageSerializer, FriendsEventSerializer)
 
 
 # Get User All Events
 def get_user_event(user_id):
-    events = Event.objects.filter(user_id=user_id)
+    events = Event.objects.filter(user_id=user_id).order_by('created_at')
     result = UserEventSerializer(events, many=True)
+    return result.data
+
+
+def get_user_image_url(id, request=None):
+    user_image = User.objects.get(id=id)
+    result = UserImageSerializer(user_image, context={'request': request}, many=False)
+    return result.data
+
+
+def get_user_profile(id, request=None):
+    users = User.objects.filter(id=id).first()
+    result = UserProfileSerializer(users, context={'request': request}, many=False)
     return result.data
 
 
@@ -48,6 +61,9 @@ def get_unfollow_events(follow, user_id):
 
 
 def get_contact_list(id):
-    contacts = User.objects.filter(id=id)
-    result = ContactsSerializer(contacts, many=True)
+    contacts = User.objects.filter(id=id).first()
+    ref_users = contacts.ref_user.all()
+    # result = ContactsSerializer(ref_users, many=True)
+    result = FriendsEventSerializer(ref_users, many=False)
+    # import pdb;pdb.set_trace()
     return result.data

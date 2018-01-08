@@ -11,65 +11,169 @@ class UserSerializer(serializers.ModelSerializer):
             user.phone_number = validated_data.get('phone_number')
         return user
 
-    # Create Profile API
-    # def update(self, instance, validated_data):
-    #     instance.email = validated_data.get('email', None) or instance.email
-    #     instance.password = validated_data.get('password', None) or instance.password
-    #     instance.first_name = validated_data.get('first_name', None) or instance.first_name
-    #     instance.last_name = validated_data.get('last_name', None) or instance.last_name
-    #     instance.phone_number = validated_data.get('phone_number', None) or instance.phone_number
-    #     instance.address = validated_data.get('address', None) or instance.address
-    #     instance.nick_name = validated_data.get('nick_name', None) or instance.nick_name
-    #     instance.image = validated_data.get('image', None) or instance.image
-    #     return instance
-
     class Meta:
         model = User
-        exclude = ('username', 'ref_user')
+        exclude = ('username', 'ref_user',)
 
 
 class TemporaryUserSerializer(serializers.ModelSerializer):
     # Import Contacts
-    # def create(self, validated_data):
-    #     user = User.objects._create_user(validated_data.get('email'), password="123456789")
-    #     return user
     def create(self, validated_data):
-        user = User.objects._create_user(validated_data.get('email'), password="12345678")
-        if validated_data.get('phone_number'):
-            user.phone_number = validated_data.get('phone_number')
+        user = User.objects._create_user(validated_data.get('email'), password="123456789")
         return user
 
     class Meta:
         model = User
         exclude = ('username', 'ref_user')
-
-
-class EventContactSerializer(ModelSerializer):
-    class Meta:
-        model = Event
-        fields = ('name', 'user', )
+#
+# class EventContactSerializer(ModelSerializer):
+#     user_event = serializers.SerializerMethodField('get_alternate_name')
+#
+#     def get_alternate_name(self, obj):
+#         return obj.user_id
+#
+#     class Meta:
+#         model = Event
+#         fields = ('id', 'name', 'user_event',)
 
 
 class ContactsSerializer(serializers.ModelSerializer):
-    event = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+    event_name = serializers.SerializerMethodField()
+    user_id = serializers.SerializerMethodField()
 
 
-    def get_event(self, obj):
-        events = Event.objects.filter(user=obj).first()
-        result = EventContactSerializer(events, many=True)
-        return result.data
+    def get_event_name(self, obj):
+        events = Event.objects.filter(user_id=obj).first()
+        if events:
+            return events.name
+        else:
+            return ""
+
+    def get_name(self, obj):
+        name = '{} {}'.format(obj.first_name, obj.last_name)
+        return name
+
+    def get_user_id(self, obj):
+        return obj.id
 
 
     class Meta:
         model = User
-        fields = ('ref_user', 'event',)
+        fields = ('name', 'event_name', 'user_id')
+
+
+class FriendsEventSerializer(serializers.Serializer):
+    ref_users = serializers.SerializerMethodField()
+
+    def get_ref_users(self, obj):
+        ref_users = ContactsSerializer(obj, many=True)
+        return ref_users.data
+
+    class Meta:
+        fields = ('ref_users',)
+
+
+class UserAllSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+
+    def get_name(self, obj):
+        name = '{} {}'.format(obj.first_name, obj.last_name)
+        return name
+
+    class Meta:
+        model = User
+        fields = ('name',)
+
+
+class UserFriendEventSerializer(ModelSerializer):
+    name = serializers.SerializerMethodField()
+
+    def get_name(self, obj):
+        name = '{} {}'.format(obj.first_name, obj.last_name)
+        return name
+
+    class Meta:
+        model = User
+        fields = ('id', 'name', 'email', 'phone_number')
+
+
+class UserImageSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('image',)
+
+
+class EventMemberSerializer(ModelSerializer):
+    # user = UserFriendEventSerializer()
+    user = serializers.SerializerMethodField()
+
+    def get_user(self, obj):
+        users = User.objects.filter(id=obj.user.id)
+        result = UserFriendEventSerializer(users, many=True)
+        return result.data
+
+    class Meta:
+        model = EventMember
+        fields = ('user',)
+
+
+class EventOrganisedSerializer(ModelSerializer):
+    class Meta:
+        model = Event
+        fields = ('id',)
+
+
+class UserProfileSerializer(ModelSerializer):
+    name = serializers.SerializerMethodField()
+    no_of_events = serializers.SerializerMethodField()
+    participants = serializers.SerializerMethodField()
+
+    def get_name(self, obj):
+        name = '{} {}'.format(obj.first_name, obj.last_name)
+        return name
+
+    def get_no_of_events(self, obj):
+        events = Event.objects.filter(user_id=obj).count()
+        return events
+
+    def get_participants(self, obj):
+        events = Event.objects.filter(user_id=obj)
+        participant = EventMember.objects.filter(event__in=events).count()
+        return participant
+
+    class Meta:
+        model = User
+        fields = ('name', 'account_id', 'image', 'no_of_events', 'participants',)
+
+
+class CombineNameSerializer(ModelSerializer):
+    name = serializers.SerializerMethodField()
+
+    def get_name(self, obj):
+        name = '{} {}'.format(obj.first_name, obj.last_name)
+        return name
+
+    class Meta:
+        model = User
+        fields = ('name',)
 
 
 # Get User All Events
 class UserEventSerializer(ModelSerializer):
+    user = UserAllSerializer()
+    event_member = serializers.SerializerMethodField()
+
+    def get_event_member(self, obj):
+        member = EventMember.objects.filter(event_id=obj, follow=False)
+        result = EventMemberSerializer(member, many=True)
+        return result.data
+
     class Meta:
         model = Event
-        fields = '__all__'
+        fields = ('id', 'name', 'event_type', 'created_at', 'description', 'scheduled_time', 'longitude', 'latitude',
+                  'location_name',
+                  'location_address', 'user', 'event_member')
 
 
 class EventFriendSerializer(ModelSerializer):
@@ -88,11 +192,9 @@ class UserFriendSerializer(ModelSerializer):
 class EventMemberFriendSerializer(ModelSerializer):
     event = EventFriendSerializer()
 
-    # user = UserFriendSerializer()
-
     class Meta:
         model = EventMember
-        fields = ('id', 'follow', 'event',)  # 'user', )
+        fields = ('id', 'follow', 'event',)
 
 
 # Get all comments on a certain Event
@@ -115,30 +217,52 @@ class EventMemberRemoveSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class EventUserSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name',)
+
+
 class EventSerializer(ModelSerializer):
+    user_name = serializers.SerializerMethodField()
+
+    # users = serializers.JSONField()
+
     # Create Event API
     def create(self, validated_data):
         event = Event.objects.create(user=validated_data.get('user'), name=validated_data.get('name'),
                                      description=validated_data.get('description'),
                                      location_name=validated_data.get('location_name'),
-                                     location_address=validated_data.get('location_address'))
+                                     location_address=validated_data.get('location_address'), )
+        # import pdb;pdb.set_trace()
+        # users = validated_data.get('users')
+        # event_id = event.id
+        # if users:
+        #     for member in users:
+        #         try:
+        #             phone_number = member.get('phone_number')
+        #             user_id = User.objects.get(phone_number=phone_number)
+        #             request_data = {
+        #                 "user": user_id,
+        #                 "event": event_id,
+        #             }
+        #             serializer = FollowEventMemberSerializer(data=request_data)
+        #             if serializer.is_valid():
+        #                 serializer.save()
+        #         except:
+        #             pass
         return event
 
-    # Edit Event API
-    # def update(self, instance, validated_data):
-    #     instance.name = validated_data.get('name', None) or instance.name
-    #     instance.event_type = validated_data.get('event_type', None) or instance.event_type
-    #     instance.description = validated_data.get('description', None) or instance.description
-    #     instance.scheduled_time = validated_data.get('scheduled_time', None) or instance.scheduled_time
-    #     instance.longitude = validated_data.get('longitude', None) or instance.longitude
-    #     instance.latitude = validated_data.get('latitude', None) or instance.latitude
-    #     instance.location_name = validated_data.get('location_name', None) or instance.location_name
-    #     instance.location_address = validated_data.get('location_address', None) or instance.location_address
-    #     return instance
+    def get_user_name(self, obj):
+        user = User.objects.filter(id=obj.user.id).first()
+        # serializer = UserAllSerializer(user, many=False)
+        return str(obj.user.first_name) + ' ' + str(obj.user.last_name)
 
     class Meta:
         model = Event
-        exclude = ('created_at',)
+        fields = ('id', 'name', 'event_type', 'created_at', 'description', 'scheduled_time', 'longitude', 'latitude',
+                  'location_name',
+                  'location_address', 'user', 'user_name',)
 
 
 class CommentSerializer(ModelSerializer):

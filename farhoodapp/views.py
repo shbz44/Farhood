@@ -9,7 +9,8 @@ from farhoodapp.serializers import (UserSerializer, EventSerializer, CommentSeri
                                     FollowEventMemberSerializer, TemporaryUserSerializer)
 
 from farhoodapp.services import (get_user_event, get_event_comments, get_event_actions, get_follow_events,
-                                 get_unfollow_events, remove_event_member, get_contact_list )
+                                 get_unfollow_events, remove_event_member, get_contact_list, get_user_profile,
+                                 get_user_image_url)
 from farhoodapp.utils.all_responses import CustomResponse
 
 
@@ -28,37 +29,56 @@ class UserCreate(APIView):
         if serializer.is_valid():
             user = serializer.save()
             return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", UserSerializer(user).data)
-        return CustomResponse.create_response(False, status.HTTP_400_BAD_REQUEST, "User already exists", {})
-        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, str(serializer.errors))
 
 
-# return Response({"User Created": UserSerializer(user).data}, status=status.HTTP_201_CREATED)
+class LogoutView(APIView):
+    queryset = User.objects.all()
+
+    def get(self, request):
+        request.user.auth_token.delete()
+        return CustomResponse.create_response(True, status.HTTP_200_OK, "Logout Successfully", {})
 
 
 # Create Profile API
 class CreateProfileUser(APIView):
     def put(self, request, format='json'):
         user_data = request.user
-        serializer = UserSerializer(user_data, data=request.data)
+        request_data = request.data.copy()
+        request_data['is_active'] = True
+        serializer = UserSerializer(user_data, data=request_data)
         if serializer.is_valid():
             user = serializer.save()
             return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", UserSerializer(user).data)
-            # return Response({"Profile Created": UserSerializer(user).data}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, str(serializer.errors))
+
+
+class GetUserProfileView(APIView):
+    def get(self, request):
+        id = request.user.id
+        resp = get_user_profile(id=id, request=request)
+        return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", resp)
+
+
+class UserImageView(APIView):
+    def get(self, request):
+        id = request.user.id
+        resp = get_user_image_url(id=id, request=request)
+        return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", resp)
 
 
 # Create Event API
 class EventCreateView(APIView):
+    parser_classes = (MultiPartParser,)
+
     def post(self, request, format='json'):
-        parser_classes = (MultiPartParser,)
         request_data = request.data.copy()
         request_data['user'] = request.user.id
         serializer = EventSerializer(data=request_data)
         if serializer.is_valid():
             event = serializer.save()
             return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", EventSerializer(event).data)
-            # return Response({"Event Created": EventSerializer(event).data}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, str(serializer.errors))
 
 
 # Edit Event API
@@ -72,8 +92,7 @@ class EventEditView(APIView):
         if serializer.is_valid():
             event = serializer.save()
             return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", EventSerializer(event).data)
-            # return Response({"Event Edited": EventSerializer(event).data}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, str(serializer.errors))
 
 
 # Create Comment View
@@ -88,8 +107,7 @@ class CreateCommentView(APIView):
                 comment = serializer.save()
                 return CustomResponse.create_response(True, status.HTTP_200_OK, "Success",
                                                       CommentSerializer(comment).data)
-                # return Response({"Comment Created": CommentSerializer(comment).data}, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, str(serializer.errors))
 
 
 # Create Action API
@@ -104,8 +122,7 @@ class CreateActionView(APIView):
                 action = serializer.save()
                 return CustomResponse.create_response(True, status.HTTP_200_OK, "Success",
                                                       ActionSerializer(action).data)
-                # return Response({"Action Created": ActionSerializer(action).data}, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, str(serializer.errors))
 
 
 # Create Event Member who is Following
@@ -120,9 +137,7 @@ class CreateFollowEventMemberView(APIView):
                 member = serializer.save()
                 return CustomResponse.create_response(True, status.HTTP_200_OK, "Success",
                                                       FollowEventMemberSerializer(member).data)
-                # return Response({"Event Member Created which is Following": FollowEventMemberSerializer(member).data},
-                #                 status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, str(serializer.errors))
 
 
 # Create Event Member who is not Following
@@ -139,10 +154,6 @@ class CreateUnfollowEventMemberView(APIView):
                     member = serializer.save()
                     return CustomResponse.create_response(True, status.HTTP_200_OK, "Success",
                                                           UnfollowEventMemberSerializer(member).data)
-
-                    # return Response(
-                    #     {"Event Member Created which is not Following": UnfollowEventMemberSerializer(member).data},
-                    #     status=status.HTTP_201_CREATED)
             else:
                 return Response({'error': 'Member Already Exists'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -157,15 +168,12 @@ class AddEventMemberView(APIView):
             member = EventMember.objects.filter(event_id=event_id, user=request.user).first()
             if not member:
                 serializer = AddEventMemberSerializer(data=request_data)
-                # import pdb;pdb.set_trace()
                 if serializer.is_valid():
                     add_member = serializer.save()
                     return CustomResponse.create_response(True, status.HTTP_200_OK, "Success",
                                                           AddEventMemberSerializer(add_member).data)
-                    # return Response({"Event Member Added": AddEventMemberSerializer(add_member).data},
-                    #                 status=status.HTTP_201_CREATED)
             else:
-                return Response("Member Already Exists")
+                return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, "")  # str(serializer.errors))
 
 
 # Remove Event Member API
@@ -176,12 +184,10 @@ class RemoveEventMemberView(APIView):
         if event_id:
             resp = remove_event_member(event_id=event_id, user_id=user_id)
             return CustomResponse.create_response(True, status.HTTP_200_OK, "Event Member Removed", resp)
-            # return Response(resp, status=status.HTTP_200_OK)
 
 
 # Get User All Events
 class UserEventView(APIView):
-    # permission_classes = (AllowAny,)
     def get(self, request):
         user_id = request.user.id
         resp = get_user_event(user_id=user_id)
@@ -196,8 +202,6 @@ class CommentEventView(APIView):
         resp = get_event_comments(event_id=event_id, user_id=user_id)
         return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", resp)
 
-        # return Response(data=resp, status=status.HTTP_200_OK)
-
 
 # Get all actions submitted on a certain event
 class EventActionView(APIView):
@@ -206,8 +210,6 @@ class EventActionView(APIView):
         event_id = request.GET.get('event_id', 1)
         resp = get_event_actions(event_id=event_id, user_id=user_id)
         return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", resp)
-
-        # return Response(data=resp, status=status.HTTP_200_OK)
 
 
 # Get All Events those are Following
@@ -218,8 +220,6 @@ class FollowEventView(APIView):
         resp = get_follow_events(follow=follow, user_id=user_id)
         return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", resp)
 
-        # return Response(data=resp, status=status.HTTP_200_OK)
-
 
 # Get All Events those are not Following
 class UnfollowEventView(APIView):
@@ -229,33 +229,27 @@ class UnfollowEventView(APIView):
         resp = get_unfollow_events(follow=follow, user_id=user_id)
         return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", resp)
 
-        # return Response(data=resp, status=status.HTTP_200_OK)
-
 
 class ImportContacts(APIView):
     parser_classes = (JSONParser,)
-# import pdb;pdb.set_trace()
+
     def post(self, request):
-        # import pdb;pdb.set_trace()
         dict_list = request.data
         users = request.user.ref_user.all()
         for item in dict_list:
-            email = item['email']
-            phone_number = item['phone_number']
-            friend = User.objects.filter(email=email, phone_number=phone_number).first()
+            email = item.get('email')
+            friend = User.objects.filter(email=email).first()
             if friend and friend not in users:
                 request.user.ref_user.add(friend)
-                # return CustomResponse.create_response(True, status.HTTP_200_OK, "This User already exists", {})
             elif not friend:
-                data = {"email": email, "phone_number":phone_number, "password": "123456789"}
+                data = {"email": email, "password": "123456789"}
                 serializer = TemporaryUserSerializer(data=data)
                 if serializer.is_valid():
                     User.temporary_profile = True
                     serializer.save()
         return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", {})
-        # return CustomResponse.create_response(True, status.HTTP_200_OK, "This User already exists", {})
+        # return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, "")
 
-                # return Response("Temporary User Created.", status=status.HTTP_201_CREATED)
 
 class ContactsView(APIView):
     def get(self, request):
