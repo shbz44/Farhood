@@ -106,7 +106,7 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 
 class Event(models.Model):
     COFFEE = 'coffee'
-    BEAR = 'bear'
+    BEER = 'beer'
     SHOPPINGS = 'shopping'
     DINNING = 'dinning'
     LOGO = 'logo'
@@ -114,7 +114,7 @@ class Event(models.Model):
 
     EVENT_TYPE = (
         (COFFEE, 'Coffee'),
-        (BEAR, 'Bear'),
+        (BEER, 'Beer'),
         (SHOPPINGS, 'Shopping'),
         (DINNING, 'Dinning'),
         (LOGO, 'Logo'),
@@ -160,6 +160,7 @@ class Action(models.Model):
 
     def __str__(self):
         return str(self.id)
+
 
 
 class EventMember(models.Model):

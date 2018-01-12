@@ -1,14 +1,64 @@
+from django.core.validators import RegexValidator, validate_email
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import ModelSerializer
 from farhoodapp.models import Event, User, Comment, Action, EventMember
 
 
 class UserSerializer(serializers.ModelSerializer):
     # SignUp API
+
+    def to_internal_value(self, data):
+        # super(UserSerializer, self).to_internal_value(data=data)
+        # import pdb;pdb.set_trace()
+        email = data.get('email')
+        phone_number = data.get('phone_number')
+        email_exist = User.objects.filter(email=email).exists()
+        phone_number_exist = User.objects.filter(phone_number=phone_number).exists()
+        if not email:
+            raise ValidationError({"Email":"This field is required."}, code='invalid')
+        elif email_exist:
+            raise ValidationError({"Email":"Field already exists."}, code='invalid')
+        elif phone_number_exist:
+            raise ValidationError({"Phone Number":"Phone Number already exists."}, code='invalid')
+        return data
+
+
+
+
+    password = serializers.CharField(min_length=3)
+
+    email_regex = RegexValidator(regex=r'^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$', message='Invalid Email')
+    email = serializers.EmailField(validators=[email_regex], allow_null=False, allow_blank=False, required=True)
+
+    phone_regex = RegexValidator(regex=r'^\+?[0,9]?\d{10,15}$',
+                                 message="Phone number must be entered in the format: '+999999999999'. Minimum 10 and Maximum 15 digits allowed.")
+    phone_number = serializers.CharField(validators=[phone_regex], max_length=15, allow_null=True, allow_blank=True,
+                                         required=False)
+
+    name_regex = RegexValidator(regex=r'^[a-zA-Z]+(([a-zA-Z ])?[a-zA-Z]*)*$',
+                                message='No special characters and digits allowed.')
+    first_name = serializers.CharField(validators=[name_regex], max_length=150, allow_null=True, allow_blank=True,
+                                       required=False)
+    last_name = serializers.CharField(validators=[name_regex], max_length=150, allow_null=True, allow_blank=True,
+                                      required=False)
+    nick_name = serializers.CharField(validators=[name_regex], max_length=150, allow_null=True, allow_blank=True,
+                                      required=False)
+
+    address_regex = RegexValidator(regex=r'^[a-zA-Z0-9\s,\-]+$',
+                                   message='No special characters except space, comma and dashes')
+    address = serializers.CharField(validators=[address_regex], max_length=150, allow_null=True, allow_blank=True,
+                                    required=False)
+
+    username_regex = RegexValidator(regex=r'^[a-zA-Z0-9\s\-]+$',
+                                    message='No special characters except space, and dashes')
+    username = serializers.CharField(validators=[username_regex], max_length=50, required=False)
+
     def create(self, validated_data):
         user = User.objects._create_user(validated_data.get('email'), validated_data.get('password'))
         if validated_data.get('phone_number'):
             user.phone_number = validated_data.get('phone_number')
+            user.save()
         return user
 
     class Meta:
@@ -25,23 +75,12 @@ class TemporaryUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         exclude = ('username', 'ref_user')
-#
-# class EventContactSerializer(ModelSerializer):
-#     user_event = serializers.SerializerMethodField('get_alternate_name')
-#
-#     def get_alternate_name(self, obj):
-#         return obj.user_id
-#
-#     class Meta:
-#         model = Event
-#         fields = ('id', 'name', 'user_event',)
 
 
 class ContactsSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
     event_name = serializers.SerializerMethodField()
     user_id = serializers.SerializerMethodField()
-
 
     def get_event_name(self, obj):
         events = Event.objects.filter(user_id=obj).first()
@@ -56,7 +95,6 @@ class ContactsSerializer(serializers.ModelSerializer):
 
     def get_user_id(self, obj):
         return obj.id
-
 
     class Meta:
         model = User
@@ -105,7 +143,6 @@ class UserImageSerializer(ModelSerializer):
 
 
 class EventMemberSerializer(ModelSerializer):
-    # user = UserFriendEventSerializer()
     user = serializers.SerializerMethodField()
 
     def get_user(self, obj):
@@ -172,8 +209,7 @@ class UserEventSerializer(ModelSerializer):
     class Meta:
         model = Event
         fields = ('id', 'name', 'event_type', 'created_at', 'description', 'scheduled_time', 'longitude', 'latitude',
-                  'location_name',
-                  'location_address', 'user', 'event_member')
+                  'location_name', 'location_address', 'user', 'event_member')
 
 
 class EventFriendSerializer(ModelSerializer):
@@ -225,8 +261,13 @@ class EventUserSerializer(ModelSerializer):
 
 class EventSerializer(ModelSerializer):
     user_name = serializers.SerializerMethodField()
+    name_regex = RegexValidator(regex=r'^[a-zA-Z0-9\s,\-]+$',
+                                message='No special characters except space, comma and dashes')
 
-    # users = serializers.JSONField()
+    name = serializers.CharField(validators=[name_regex], max_length=150)
+    description = serializers.CharField(validators=[name_regex], max_length=150)
+    location_name = serializers.CharField(validators=[name_regex], max_length=150)
+    location_address = serializers.CharField(validators=[name_regex], max_length=200)
 
     # Create Event API
     def create(self, validated_data):
@@ -234,39 +275,42 @@ class EventSerializer(ModelSerializer):
                                      description=validated_data.get('description'),
                                      location_name=validated_data.get('location_name'),
                                      location_address=validated_data.get('location_address'), )
-        # import pdb;pdb.set_trace()
-        # users = validated_data.get('users')
-        # event_id = event.id
-        # if users:
-        #     for member in users:
-        #         try:
-        #             phone_number = member.get('phone_number')
-        #             user_id = User.objects.get(phone_number=phone_number)
-        #             request_data = {
-        #                 "user": user_id,
-        #                 "event": event_id,
-        #             }
-        #             serializer = FollowEventMemberSerializer(data=request_data)
-        #             if serializer.is_valid():
-        #                 serializer.save()
-        #         except:
-        #             pass
+
+        users = validated_data.get('users')
+        event_id = event.id
+        if users:
+            for member in users:
+                try:
+                    phone_number = member.get('phone_number')
+                    user_id = User.objects.filter(phone_number=phone_number).first()
+                    request_data = {
+                        "user": user_id,
+                        "event": event_id,
+                    }
+                    serializer = FollowEventMemberSerializer(data=request_data)
+                    if serializer.is_valid():
+                        serializer.save()
+                except:
+                    pass
+
         return event
 
     def get_user_name(self, obj):
         user = User.objects.filter(id=obj.user.id).first()
-        # serializer = UserAllSerializer(user, many=False)
-        return str(obj.user.first_name) + ' ' + str(obj.user.last_name)
+        return str(user.first_name) + ' ' + str(user.last_name)
 
     class Meta:
         model = Event
         fields = ('id', 'name', 'event_type', 'created_at', 'description', 'scheduled_time', 'longitude', 'latitude',
-                  'location_name',
-                  'location_address', 'user', 'user_name',)
+                  'location_name', 'location_address', 'user', 'user_name',)
 
 
 class CommentSerializer(ModelSerializer):
     # Create Comment View
+    message_regex = RegexValidator(regex=r'^[a-zA-Z0-9\s,\-]+$',
+                                   message='No special characters except space, comma and dashes')
+    message = serializers.CharField(validators=[message_regex], max_length=200)
+
     def create(self, validated_data):
         comment = Comment.objects.create(event=validated_data.get('event'),
                                          user=validated_data.get('user'),
@@ -283,7 +327,7 @@ class ActionSerializer(ModelSerializer):
     def create(self, validated_data):
         action = Action.objects.create(event=validated_data.get('event'),
                                        user=validated_data.get('user'),
-                                       action_type=validated_data.get('action_type'))
+                                       action_type=validated_data.get('action_type', 'good'))
         return action
 
     class Meta:

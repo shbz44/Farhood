@@ -23,8 +23,10 @@ class UserCreate(APIView):
         data = request.data.copy()
         if 'email' not in data.keys():
             data['email'] = data['phone_number'] + "@dottech.info"
+            # data['phone_number'] = data['phone_number']
         else:
             data['email'] = data['email']
+            # data['phone_number'] = data['phone_number']
         serializer = UserSerializer(data=data)
         if serializer.is_valid():
             user = serializer.save()
@@ -183,7 +185,7 @@ class RemoveEventMemberView(APIView):
         event_id = request.POST.get('event')
         if event_id:
             resp = remove_event_member(event_id=event_id, user_id=user_id)
-            return CustomResponse.create_response(True, status.HTTP_200_OK, "Event Member Removed", resp)
+            return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", resp)
 
 
 # Get User All Events

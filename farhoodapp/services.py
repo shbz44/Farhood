@@ -1,6 +1,6 @@
 from farhoodapp.models import Event, Comment, Action, EventMember, User
 from farhoodapp.serializers import (UserEventSerializer, EventCommentSerializer, EventActionSerializer,
-                                    EventMemberFriendSerializer, ContactsSerializer, UserProfileSerializer,
+                                    EventMemberFriendSerializer, UserProfileSerializer,
                                     UserImageSerializer, FriendsEventSerializer)
 
 
@@ -43,7 +43,7 @@ def remove_event_member(event_id, user_id):
     if member:
         member.follow = False
         member.save()
-    return 'successfully unfollow'
+    return 'successfully unfollowed'
 
 
 # Get All Events those are Following
@@ -63,7 +63,5 @@ def get_unfollow_events(follow, user_id):
 def get_contact_list(id):
     contacts = User.objects.filter(id=id).first()
     ref_users = contacts.ref_user.all()
-    # result = ContactsSerializer(ref_users, many=True)
     result = FriendsEventSerializer(ref_users, many=False)
-    # import pdb;pdb.set_trace()
     return result.data
