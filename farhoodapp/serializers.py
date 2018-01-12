@@ -1,39 +1,33 @@
-from django.core.validators import RegexValidator, validate_email
+import re
+from django.core.validators import RegexValidator
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import ModelSerializer
+from rest_framework.validators import UniqueValidator
+
 from farhoodapp.models import Event, User, Comment, Action, EventMember
+
+
+class EmailValidator(object):
+    def __init__(self, message):
+        self.message = message
+
+    def __call__(self, email):
+        email_re = "^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$"
+        if not re.match(email_re, email):
+            raise serializers.ValidationError(self.message, code='invalid-email')
 
 
 class UserSerializer(serializers.ModelSerializer):
     # SignUp API
 
-    def to_internal_value(self, data):
-        # super(UserSerializer, self).to_internal_value(data=data)
-        # import pdb;pdb.set_trace()
-        email = data.get('email')
-        phone_number = data.get('phone_number')
-        email_exist = User.objects.filter(email=email).exists()
-        phone_number_exist = User.objects.filter(phone_number=phone_number).exists()
-        if not email:
-            raise ValidationError({"Email":"This field is required."}, code='invalid')
-        elif email_exist:
-            raise ValidationError({"Email":"Field already exists."}, code='invalid')
-        elif phone_number_exist:
-            raise ValidationError({"Phone Number":"Phone Number already exists."}, code='invalid')
-        return data
-
-
-
-
     password = serializers.CharField(min_length=3)
-
-    email_regex = RegexValidator(regex=r'^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$', message='Invalid Email')
-    email = serializers.EmailField(validators=[email_regex], allow_null=False, allow_blank=False, required=True)
-
+    email = serializers.EmailField(
+        validators=[EmailValidator(message="Invaid email address"), UniqueValidator(queryset=User.objects.all())],
+        required=True)
     phone_regex = RegexValidator(regex=r'^\+?[0,9]?\d{10,15}$',
                                  message="Phone number must be entered in the format: '+999999999999'. Minimum 10 and Maximum 15 digits allowed.")
-    phone_number = serializers.CharField(validators=[phone_regex], max_length=15, allow_null=True, allow_blank=True,
+    phone_number = serializers.CharField(validators=[phone_regex, UniqueValidator(queryset=User.objects.all())],
+                                         max_length=15, allow_null=True, allow_blank=True,
                                          required=False)
 
     name_regex = RegexValidator(regex=r'^[a-zA-Z]+(([a-zA-Z ])?[a-zA-Z]*)*$',
@@ -261,8 +255,12 @@ class EventUserSerializer(ModelSerializer):
 
 class EventSerializer(ModelSerializer):
     user_name = serializers.SerializerMethodField()
-    name_regex = RegexValidator(regex=r'^[a-zA-Z0-9\s,\-]+$',
+    name_regex = RegexValidator(regex=r'^[a-zA-Z0-9\s,\#\.\-]+$',
                                 message='No special characters except space, comma and dashes')
+    # number_regex = RegexValidator(regex=r'^[0-9]*\.?[0-9]*$', message='Only digits or floating number allowed')
+    # longitude = serializers.FloatField(validators=[number_regex], allow_null=True)
+    # latitude = serializers.FloatField(validators=[number_regex], allow_null=True)
+
 
     name = serializers.CharField(validators=[name_regex], max_length=150)
     description = serializers.CharField(validators=[name_regex], max_length=150)
@@ -307,9 +305,9 @@ class EventSerializer(ModelSerializer):
 
 class CommentSerializer(ModelSerializer):
     # Create Comment View
-    message_regex = RegexValidator(regex=r'^[a-zA-Z0-9\s,\-]+$',
-                                   message='No special characters except space, comma and dashes')
-    message = serializers.CharField(validators=[message_regex], max_length=200)
+    # message_regex = RegexValidator(regex=r'^[a-zA-Z0-9\s,\-]+$',
+    #                                message='No special characters except space, comma and dashes')
+    # message = serializers.CharField(validators=[message_regex], max_length=200)
 
     def create(self, validated_data):
         comment = Comment.objects.create(event=validated_data.get('event'),

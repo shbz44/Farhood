@@ -162,7 +162,6 @@ class Action(models.Model):
         return str(self.id)
 
 
-
 class EventMember(models.Model):
     user = models.ForeignKey(User)
     event = models.ForeignKey(Event)

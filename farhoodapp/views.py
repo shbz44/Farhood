@@ -16,17 +16,14 @@ from farhoodapp.utils.all_responses import CustomResponse
 
 # SignUp API
 class UserCreate(APIView):
-    # authentication_classes = [TokenAuthentication]
     permission_classes = (AllowAny,)
 
     def post(self, request, format='json'):
         data = request.data.copy()
         if 'email' not in data.keys():
             data['email'] = data['phone_number'] + "@dottech.info"
-            # data['phone_number'] = data['phone_number']
         else:
             data['email'] = data['email']
-            # data['phone_number'] = data['phone_number']
         serializer = UserSerializer(data=data)
         if serializer.is_valid():
             user = serializer.save()
