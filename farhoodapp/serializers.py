@@ -18,8 +18,29 @@ class EmailValidator(object):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    # SignUp API
+    password = serializers.CharField(min_length=3)
+    email = serializers.EmailField(
+        validators=[EmailValidator(message="Invaid email address"), UniqueValidator(queryset=User.objects.all())],
+        required=True)
+    phone_regex = RegexValidator(regex=r'^\+?[0,9]?\d{10,15}$',
+                                 message="Phone number must be entered in the format: '+999999999999'. Minimum 10 and Maximum 15 digits allowed.")
+    phone_number = serializers.CharField(validators=[phone_regex, UniqueValidator(queryset=User.objects.all())],
+                                         max_length=15, allow_null=True, allow_blank=True,
+                                         required=False)
 
+    def create(self, validated_data):
+        user = User.objects._create_user(validated_data.get('email'), validated_data.get('password'))
+        if validated_data.get('phone_number'):
+            user.phone_number = validated_data.get('phone_number')
+            user.save()
+        return user
+
+    class Meta:
+        model = User
+        fields = ('email', 'phone_number', 'password',)
+
+
+class ProfileSerializer(serializers.ModelSerializer):
     password = serializers.CharField(min_length=3)
     email = serializers.EmailField(
         validators=[EmailValidator(message="Invaid email address"), UniqueValidator(queryset=User.objects.all())],
@@ -57,18 +78,17 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        exclude = ('username', 'ref_user',)
+        fields = ('email', 'phone_number', 'password', 'first_name', 'last_name', 'nick_name', 'username', 'address',)
 
 
 class TemporaryUserSerializer(serializers.ModelSerializer):
-    # Import Contacts
     def create(self, validated_data):
         user = User.objects._create_user(validated_data.get('email'), password="123456789")
         return user
 
     class Meta:
         model = User
-        exclude = ('username', 'ref_user')
+        fields = ('email', 'password',)
 
 
 class ContactsSerializer(serializers.ModelSerializer):
@@ -190,7 +210,6 @@ class CombineNameSerializer(ModelSerializer):
         fields = ('name',)
 
 
-# Get User All Events
 class UserEventSerializer(ModelSerializer):
     user = UserAllSerializer()
     event_member = serializers.SerializerMethodField()
@@ -218,7 +237,6 @@ class UserFriendSerializer(ModelSerializer):
         fields = '__all__'
 
 
-# Get All Events those are Following
 class EventMemberFriendSerializer(ModelSerializer):
     event = EventFriendSerializer()
 
@@ -227,14 +245,12 @@ class EventMemberFriendSerializer(ModelSerializer):
         fields = ('id', 'follow', 'event',)
 
 
-# Get all comments on a certain Event
 class EventCommentSerializer(ModelSerializer):
     class Meta:
         model = Comment
         fields = '__all__'
 
 
-# Get all actions submitted on a certain even
 class EventActionSerializer(ModelSerializer):
     class Meta:
         model = Action
@@ -257,17 +273,12 @@ class EventSerializer(ModelSerializer):
     user_name = serializers.SerializerMethodField()
     name_regex = RegexValidator(regex=r'^[a-zA-Z0-9\s,\#\.\-]+$',
                                 message='No special characters except space, comma and dashes')
-    # number_regex = RegexValidator(regex=r'^[0-9]*\.?[0-9]*$', message='Only digits or floating number allowed')
-    # longitude = serializers.FloatField(validators=[number_regex], allow_null=True)
-    # latitude = serializers.FloatField(validators=[number_regex], allow_null=True)
-
 
     name = serializers.CharField(validators=[name_regex], max_length=150)
     description = serializers.CharField(validators=[name_regex], max_length=150)
     location_name = serializers.CharField(validators=[name_regex], max_length=150)
     location_address = serializers.CharField(validators=[name_regex], max_length=200)
 
-    # Create Event API
     def create(self, validated_data):
         event = Event.objects.create(user=validated_data.get('user'), name=validated_data.get('name'),
                                      description=validated_data.get('description'),
@@ -304,11 +315,6 @@ class EventSerializer(ModelSerializer):
 
 
 class CommentSerializer(ModelSerializer):
-    # Create Comment View
-    # message_regex = RegexValidator(regex=r'^[a-zA-Z0-9\s,\-]+$',
-    #                                message='No special characters except space, comma and dashes')
-    # message = serializers.CharField(validators=[message_regex], max_length=200)
-
     def create(self, validated_data):
         comment = Comment.objects.create(event=validated_data.get('event'),
                                          user=validated_data.get('user'),
@@ -321,7 +327,6 @@ class CommentSerializer(ModelSerializer):
 
 
 class ActionSerializer(ModelSerializer):
-    # Create Action API
     def create(self, validated_data):
         action = Action.objects.create(event=validated_data.get('event'),
                                        user=validated_data.get('user'),
@@ -334,7 +339,6 @@ class ActionSerializer(ModelSerializer):
 
 
 class FollowEventMemberSerializer(ModelSerializer):
-    # Create Event Member who is Following
     def create(self, validated_data):
         member = EventMember.objects.create(event=validated_data.get('event'),
                                             user=validated_data.get('user'), follow=True)
@@ -346,7 +350,6 @@ class FollowEventMemberSerializer(ModelSerializer):
 
 
 class UnfollowEventMemberSerializer(ModelSerializer):
-    # Create Event Member who is not Following
     def create(self, validated_data):
         member = EventMember.objects.create(event=validated_data.get('event'),
                                             user=validated_data.get('user'), follow=False)
@@ -357,7 +360,6 @@ class UnfollowEventMemberSerializer(ModelSerializer):
         fields = '__all__'
 
 
-# Add Event Member API
 class AddEventMemberSerializer(ModelSerializer):
     def create(self, validated_data):
         member = EventMember.objects.create(event=validated_data.get('event'),
