@@ -17,6 +17,7 @@ class UserCreate(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request, format='json'):
+        # import pdb;pdb.set_trace()
         data = request.data.copy()
         if 'email' not in data.keys():
             data['email'] = data['phone_number'] + "@dottech.info"
