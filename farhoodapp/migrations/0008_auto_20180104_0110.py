@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 from django.db import migrations, models
 import farhoodapp.models
-import farhoodapp.utils.overwritestorage
 
 
 class Migration(migrations.Migration):
@@ -17,6 +16,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='user',
             name='image',
-            field=models.ImageField(blank=True, null=True, storage=farhoodapp.utils.overwritestorage.OverwriteStorage(), upload_to=farhoodapp.models.upload_profile_image),
+            field=models.ImageField(blank=True, null=True, upload_to=farhoodapp.models.upload_profile_image),
         ),
     ]

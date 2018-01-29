@@ -1,8 +1,8 @@
 from rest_framework import status
 from rest_framework.views import APIView
+from farhoodapp.utils import CustomResponse
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from farhoodapp.utils.all_responses import CustomResponse
 from rest_framework.parsers import JSONParser, MultiPartParser
 from farhoodapp.models import (User, Event, EventMember, )
 from farhoodapp.serializers import (UserSerializer, EventSerializer, CommentSerializer, ActionSerializer,
@@ -17,7 +17,6 @@ class UserCreate(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request, format='json'):
-        # import pdb;pdb.set_trace()
         data = request.data.copy()
         if 'email' not in data.keys():
             data['email'] = data['phone_number'] + "@dottech.info"

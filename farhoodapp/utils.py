@@ -1,4 +1,4 @@
-from farhoodapp.utils.exception import ValidationError
+from farhoodapp.exception import ValidationError
 
 __author__ = 'DotTech Pvt. Ltd.'
 
@@ -44,8 +44,7 @@ class CustomResponse():
         )
 
     def user_object(user):
-        user
-        return
+        return user
 
 
 def raise_validation_error(error_dict):
