@@ -32,5 +32,4 @@ urlpatterns = [
                   url(r'^get/profile/$', GetUserProfileView.as_view()),
                   url(r'^image/', UserImageView.as_view()),
                   url(r'^logout/', LogoutView.as_view()),
-
               ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
