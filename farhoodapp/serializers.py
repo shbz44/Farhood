@@ -40,6 +40,12 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('email', 'phone_number', 'password',)
 
 
+class UserResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('email', 'phone_number',)
+
+
 class ProfileSerializer(serializers.ModelSerializer):
     password = serializers.CharField(min_length=3)
     email = serializers.EmailField(
@@ -105,8 +111,8 @@ class FriendsSerializer(serializers.ModelSerializer):
             return ""
 
     def get_name(self, obj):
-        name = '{} {}'.format(obj.first_name, obj.last_name)
-        return name
+        # name = '{} {}'.format(obj.first_name, obj.last_name)
+        return obj.first_name
 
     def get_user_id(self, obj):
         return obj.id
@@ -196,7 +202,7 @@ class UserProfileSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('name', 'account_id', 'image', 'no_of_events', 'participants',)
+        fields = ( 'id', 'name', 'image', 'no_of_events', 'participants',)
 
 
 class CombineNameSerializer(ModelSerializer):

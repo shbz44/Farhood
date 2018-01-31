@@ -7,7 +7,8 @@ from rest_framework.parsers import JSONParser, MultiPartParser
 from farhoodapp.models import (User, Event, EventMember, )
 from farhoodapp.serializers import (UserSerializer, EventSerializer, CommentSerializer, ActionSerializer,
                                     AddEventMemberSerializer, UnfollowEventMemberSerializer,
-                                    FollowEventMemberSerializer, TemporaryUserSerializer, ProfileSerializer)
+                                    FollowEventMemberSerializer, TemporaryUserSerializer, ProfileSerializer,
+                                    UserResponseSerializer)
 from farhoodapp.services import (get_user_event, get_event_comments, get_event_actions, get_follow_events,
                                  get_unfollow_events, remove_event_member, get_friends_list, get_user_profile,
                                  get_user_image_url, get_contacts_list)
@@ -27,7 +28,8 @@ class UserCreate(APIView):
             user = serializer.save()
             user.temporary_profile = False
             user.save()
-            return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", UserSerializer(user).data)
+            return CustomResponse.create_response(True, status.HTTP_200_OK, "Success",
+                                                  UserResponseSerializer(user).data)
         return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, str(serializer.errors))
 
 
@@ -230,6 +232,7 @@ class ImportContacts(APIView):
         for item in dict_list:
             phone_number = item.get('phone_number')
             email = item.get('email')
+            name = item.get('name')
             friend = User.objects.filter(phone_number=phone_number).first()
             if friend and friend not in users:
                 request.user.ref_user.add(friend)
@@ -244,6 +247,7 @@ class ImportContacts(APIView):
                     s = serializer.save()
                     s.temporary_profile = True
                     s.phone_number = phone_number
+                    s.first_name = name
                     id = s.id
                     new_friend = User.objects.filter(id=id).first()
                     request.user.ref_user.add(new_friend)
