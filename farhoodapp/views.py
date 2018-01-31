@@ -226,7 +226,7 @@ class ImportContacts(APIView):
     parser_classes = (JSONParser,)
 
     def post(self, request):
-        # import pdb;pdb.set_trace()
+        import pdb;pdb.set_trace()
         dict_list = request.data
         users = request.user.ref_user.all()
         for item in dict_list:
@@ -236,6 +236,8 @@ class ImportContacts(APIView):
             friend = User.objects.filter(phone_number=phone_number).first()
             if friend and friend not in users:
                 request.user.ref_user.add(friend)
+                friend.first_name = name
+                friend.save()
             elif not friend:
                 if email:
                     data = {"email": email, "password": "123456789"}
