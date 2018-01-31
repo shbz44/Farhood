@@ -9,8 +9,8 @@ from farhoodapp.serializers import (UserSerializer, EventSerializer, CommentSeri
                                     AddEventMemberSerializer, UnfollowEventMemberSerializer,
                                     FollowEventMemberSerializer, TemporaryUserSerializer, ProfileSerializer)
 from farhoodapp.services import (get_user_event, get_event_comments, get_event_actions, get_follow_events,
-                                 get_unfollow_events, remove_event_member, get_contact_list, get_user_profile,
-                                 get_user_image_url)
+                                 get_unfollow_events, remove_event_member, get_friends_list, get_user_profile,
+                                 get_user_image_url, get_contacts_list)
 
 
 class UserCreate(APIView):
@@ -25,16 +25,10 @@ class UserCreate(APIView):
         serializer = UserSerializer(data=data)
         if serializer.is_valid():
             user = serializer.save()
+            user.temporary_profile = False
+            user.save()
             return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", UserSerializer(user).data)
         return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, str(serializer.errors))
-
-
-class LogoutView(APIView):
-    queryset = User.objects.all()
-
-    def get(self, request):
-        request.user.auth_token.delete()
-        return CustomResponse.create_response(True, status.HTTP_200_OK, "Logout Successfully", {})
 
 
 class CreateProfileUser(APIView):
@@ -46,8 +40,18 @@ class CreateProfileUser(APIView):
         serializer = ProfileSerializer(user_data, data=request_data)
         if serializer.is_valid():
             user = serializer.save()
+            user.temporary_profile = False
+            user.save()
             return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", ProfileSerializer(user).data)
         return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, str(serializer.errors))
+
+
+class LogoutView(APIView):
+    queryset = User.objects.all()
+
+    def get(self, request):
+        request.user.auth_token.delete()
+        return CustomResponse.create_response(True, status.HTTP_200_OK, "Logout Successfully", {})
 
 
 class GetUserProfileView(APIView):
@@ -220,19 +224,30 @@ class ImportContacts(APIView):
     parser_classes = (JSONParser,)
 
     def post(self, request):
+        # import pdb;pdb.set_trace()
         dict_list = request.data
         users = request.user.ref_user.all()
         for item in dict_list:
+            phone_number = item.get('phone_number')
             email = item.get('email')
-            friend = User.objects.filter(email=email).first()
+            friend = User.objects.filter(phone_number=phone_number).first()
             if friend and friend not in users:
                 request.user.ref_user.add(friend)
             elif not friend:
-                data = {"email": email, "password": "123456789"}
+                if email:
+                    data = {"email": email, "password": "123456789"}
+                elif not email:
+                    phone = phone_number + "@dottech.info"
+                    data = {"email": phone, "password": "123456789"}
                 serializer = TemporaryUserSerializer(data=data)
                 if serializer.is_valid():
-                    User.temporary_profile = True
-                    serializer.save()
+                    s = serializer.save()
+                    s.temporary_profile = True
+                    s.phone_number = phone_number
+                    id = s.id
+                    new_friend = User.objects.filter(id=id).first()
+                    request.user.ref_user.add(new_friend)
+                    s.save()
         return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", {})
 
 
@@ -260,8 +275,15 @@ class FollowFriends(APIView):
             return CustomResponse.create_response(True, status.HTTP_200_OK, 'User not exists', {})
 
 
+class FriendsView(APIView):
+    def get(self, request):
+        id = request.user.id
+        resp = get_friends_list(id=id)
+        return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", resp)
+
+
 class ContactsView(APIView):
     def get(self, request):
         id = request.user.id
-        resp = get_contact_list(id=id)
+        resp = get_contacts_list(id=id)
         return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", resp)

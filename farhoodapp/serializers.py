@@ -78,7 +78,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'phone_number', 'password', 'first_name', 'last_name', 'nick_name', 'username', 'address',)
+        fields = (
+            'email', 'phone_number', 'password', 'first_name', 'last_name', 'nick_name', 'username', 'address', 'image',)
 
 
 class TemporaryUserSerializer(serializers.ModelSerializer):
@@ -91,7 +92,7 @@ class TemporaryUserSerializer(serializers.ModelSerializer):
         fields = ('email', 'password',)
 
 
-class ContactsSerializer(serializers.ModelSerializer):
+class FriendsSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
     event_name = serializers.SerializerMethodField()
     user_id = serializers.SerializerMethodField()
@@ -119,7 +120,7 @@ class FriendsEventSerializer(serializers.Serializer):
     ref_users = serializers.SerializerMethodField()
 
     def get_ref_users(self, obj):
-        ref_users = ContactsSerializer(obj, many=True)
+        ref_users = FriendsSerializer(obj, many=True)
         return ref_users.data
 
     class Meta:
@@ -363,7 +364,7 @@ class UnfollowEventMemberSerializer(ModelSerializer):
 class AddEventMemberSerializer(ModelSerializer):
     def create(self, validated_data):
         member = EventMember.objects.create(event=validated_data.get('event'),
-                                            user=validated_data.get('user'), follow=True)
+                                            user=validated_data.get('user'), follow=validated_data.get('follow'))
         return member
 
     class Meta:

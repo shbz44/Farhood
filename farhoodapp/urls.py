@@ -5,8 +5,8 @@ from rest_framework.authtoken import views as rest_framework_views
 from farhoodapp.views import (UserCreate, CreateProfileUser, UserEventView, EventCreateView, EventEditView,
                               CommentEventView, CreateCommentView, CreateActionView, CreateFollowEventMemberView,
                               EventActionView, RemoveEventMemberView, AddEventMemberView, CreateUnfollowEventMemberView,
-                              FollowEventView, UnfollowEventView, ImportContacts, ContactsView, GetUserProfileView,
-                              UserImageView, LogoutView, UnfollowFriends, FollowFriends, )
+                              FollowEventView, UnfollowEventView, ImportContacts, FriendsView, GetUserProfileView,
+                              UserImageView, LogoutView, UnfollowFriends, FollowFriends, ContactsView)
 
 urlpatterns = [
                   url(r'^get_auth_token/$', rest_framework_views.obtain_auth_token, name='get_auth_token'),
@@ -28,6 +28,7 @@ urlpatterns = [
                   url(r'^comment/$', CommentEventView.as_view()),
                   url(r'^action/event/$', EventActionView.as_view()),
                   url(r'^user/event/$', UserEventView.as_view()),
+                  url(r'^get/friends/$', FriendsView.as_view()),
                   url(r'^get/contacts/$', ContactsView.as_view()),
                   url(r'^get/profile/$', GetUserProfileView.as_view()),
                   url(r'^image/', UserImageView.as_view()),

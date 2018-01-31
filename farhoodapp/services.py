@@ -54,7 +54,14 @@ def get_unfollow_events(follow, user_id):
     return result.data
 
 
-def get_contact_list(id):
+def get_friends_list(id):
+    friends = User.objects.filter(id=id).first()
+    ref_users = friends.ref_user.filter(temporary_profile=False)
+    result = FriendsEventSerializer(ref_users, many=False)
+    return result.data
+
+
+def get_contacts_list(id):
     contacts = User.objects.filter(id=id).first()
     ref_users = contacts.ref_user.all()
     result = FriendsEventSerializer(ref_users, many=False)
