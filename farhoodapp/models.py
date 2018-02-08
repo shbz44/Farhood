@@ -121,7 +121,7 @@ class Event(models.Model):
     name = models.CharField(max_length=150)
     event_type = models.CharField(max_length=150, choices=EVENT_TYPE, default=COFFEE)
     description = models.CharField(max_length=150)
-    scheduled_time = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    scheduled_time = models.DateTimeField(auto_now_add=False, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     longitude = models.FloatField(null=True, blank=True, default=0.0)
     latitude = models.FloatField(null=True, blank=True, default=0.0)
