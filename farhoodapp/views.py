@@ -1,17 +1,17 @@
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.views import APIView
 from farhoodapp.utils import CustomResponse
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.parsers import JSONParser, MultiPartParser
 from farhoodapp.models import (User, Event, EventMember, )
+from farhoodapp.services import (get_user_event, get_event_comments, get_event_actions, get_follow_events,
+                                 get_unfollow_events, remove_event_member, get_friends_list, get_user_profile,
+                                 get_user_image_url, get_contacts_list)
 from farhoodapp.serializers import (UserSerializer, EventSerializer, CommentSerializer, ActionSerializer,
                                     AddEventMemberSerializer, UnfollowEventMemberSerializer,
                                     FollowEventMemberSerializer, TemporaryUserSerializer, ProfileSerializer,
                                     UserResponseSerializer)
-from farhoodapp.services import (get_user_event, get_event_comments, get_event_actions, get_follow_events,
-                                 get_unfollow_events, remove_event_member, get_friends_list, get_user_profile,
-                                 get_user_image_url, get_contacts_list)
 
 
 class UserCreate(APIView):
@@ -70,13 +70,15 @@ class UserImageView(APIView):
         return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", resp)
 
 
-class EventCreateView(APIView):
-    parser_classes = (MultiPartParser,)
+class EventCreateView(generics.GenericAPIView):
+    # parser_classes = (JSONParser,)
+    serializer_class = EventSerializer
 
     def post(self, request, format='json'):
         request_data = request.data.copy()
         request_data['user'] = request.user.id
-        serializer = EventSerializer(data=request_data)
+        # serializer = EventSerializer(data=request_data)
+        serializer = self.get_serializer(data=request_data)
         if serializer.is_valid():
             event = serializer.save()
             return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", EventSerializer(event).data)
@@ -222,41 +224,6 @@ class UnfollowEventView(APIView):
         return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", resp)
 
 
-class ImportContacts(APIView):
-    parser_classes = (JSONParser,)
-
-    def post(self, request):
-        import pdb;pdb.set_trace()
-        dict_list = request.data
-        users = request.user.ref_user.all()
-        for item in dict_list:
-            phone_number = item.get('phone_number')
-            email = item.get('email')
-            name = item.get('name')
-            friend = User.objects.filter(phone_number=phone_number).first()
-            if friend and friend not in users:
-                request.user.ref_user.add(friend)
-                friend.first_name = name
-                friend.save()
-            elif not friend:
-                if email:
-                    data = {"email": email, "password": "123456789"}
-                elif not email:
-                    phone = phone_number + "@dottech.info"
-                    data = {"email": phone, "password": "123456789"}
-                serializer = TemporaryUserSerializer(data=data)
-                if serializer.is_valid():
-                    s = serializer.save()
-                    s.temporary_profile = True
-                    s.phone_number = phone_number
-                    s.first_name = name
-                    id = s.id
-                    new_friend = User.objects.filter(id=id).first()
-                    request.user.ref_user.add(new_friend)
-                    s.save()
-        return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", {})
-
-
 class UnfollowFriends(APIView):
     def post(self, request):
         user = request.user
@@ -293,3 +260,39 @@ class ContactsView(APIView):
         id = request.user.id
         resp = get_contacts_list(id=id)
         return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", resp)
+
+
+class ImportContacts(APIView):
+    parser_classes = (JSONParser,)
+
+    def post(self, request):
+        # import pdb;pdb.set_trace()
+        dict_list = request.data
+        users = request.user.ref_user.all()
+        # friend_users = request.user.ref_user.filter(temporary_profile=False)
+        for item in dict_list:
+            phone_number = item.get('phone_number')
+            email = item.get('email')
+            name = item.get('name')
+            friend = User.objects.filter(phone_number=phone_number).first()
+            if friend and friend not in users:
+                request.user.ref_user.add(friend)
+                friend.first_name = name
+                friend.save()
+            elif not friend:
+                if email:
+                    data = {"email": email, "password": "123456789"}
+                elif not email:
+                    phone = phone_number + "@dottech.info"
+                    data = {"email": phone, "password": "123456789"}
+                serializer = TemporaryUserSerializer(data=data)
+                if serializer.is_valid():
+                    s = serializer.save()
+                    s.temporary_profile = True
+                    s.phone_number = phone_number
+                    s.first_name = name
+                    id = s.id
+                    new_friend = User.objects.filter(id=id).first()
+                    request.user.ref_user.add(new_friend)
+                    s.save()
+        return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", {})
