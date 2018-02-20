@@ -11,7 +11,7 @@ from farhoodapp.services import (get_user_event, get_event_comments, get_event_a
 from farhoodapp.serializers import (UserSerializer, EventSerializer, CommentSerializer, ActionSerializer,
                                     AddEventMemberSerializer, UnfollowEventMemberSerializer,
                                     FollowEventMemberSerializer, TemporaryUserSerializer, ProfileSerializer,
-                                    UserResponseSerializer)
+                                    UserResponseSerializer, ProfileUpdateSerializer)
 
 
 class UserCreate(APIView):
@@ -33,18 +33,18 @@ class UserCreate(APIView):
         return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, str(serializer.errors))
 
 
-class CreateProfileUser(APIView):
+class UpdateProfileUser(APIView):
 
     def put(self, request, format='json'):
         user_data = request.user
         request_data = request.data.copy()
         request_data['is_active'] = True
-        serializer = ProfileSerializer(user_data, data=request_data)
+        serializer = ProfileUpdateSerializer(user_data, data=request_data)
         if serializer.is_valid():
             user = serializer.save()
             user.temporary_profile = False
             user.save()
-            return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", ProfileSerializer(user).data)
+            return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", ProfileUpdateSerializer(user).data)
         return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, str(serializer.errors))
 
 

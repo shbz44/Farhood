@@ -85,7 +85,38 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'email', 'phone_number', 'password', 'first_name', 'last_name', 'nick_name', 'username', 'address', 'image',)
+            'email', 'phone_number', 'password', 'first_name', 'last_name', 'nick_name', 'username', 'address',
+            'image',)
+
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    phone_regex = RegexValidator(regex=r'^\+?[0,9]?\d{10,15}$',
+                                 message="Phone number must be entered in the format: '+999999999999'. Minimum 10 and Maximum 15 digits allowed.")
+    phone_number = serializers.CharField(validators=[phone_regex, UniqueValidator(queryset=User.objects.all())],
+                                         max_length=15, allow_null=True, allow_blank=True,
+                                         required=False)
+
+    name_regex = RegexValidator(regex=r'^[a-zA-Z]+(([a-zA-Z ])?[a-zA-Z]*)*$',
+                                message='No special characters and digits allowed.')
+    first_name = serializers.CharField(validators=[name_regex], max_length=150, allow_null=True, allow_blank=True,
+                                       required=False)
+    last_name = serializers.CharField(validators=[name_regex], max_length=150, allow_null=True, allow_blank=True,
+                                      required=False)
+    nick_name = serializers.CharField(validators=[name_regex], max_length=150, allow_null=True, allow_blank=True,
+                                      required=False)
+
+    address_regex = RegexValidator(regex=r'^[a-zA-Z0-9\s,\-]+$',
+                                   message='No special characters except space, comma and dashes')
+    address = serializers.CharField(validators=[address_regex], max_length=150, allow_null=True, allow_blank=True,
+                                    required=False)
+
+    username_regex = RegexValidator(regex=r'^[a-zA-Z0-9\s\-]+$',
+                                    message='No special characters except space, and dashes')
+    username = serializers.CharField(validators=[username_regex], max_length=50, required=False)
+
+    class Meta:
+        model = User
+        fields = ('phone_number', 'first_name', 'last_name', 'nick_name', 'username', 'address', 'image',)
 
 
 class TemporaryUserSerializer(serializers.ModelSerializer):
@@ -202,7 +233,7 @@ class UserProfileSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ( 'id', 'name', 'image', 'no_of_events', 'participants',)
+        fields = ('id', 'name', 'image', 'no_of_events', 'participants',)
 
 
 class CombineNameSerializer(ModelSerializer):

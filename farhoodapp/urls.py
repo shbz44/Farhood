@@ -2,7 +2,7 @@ from django.conf.urls import url
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.authtoken import views as rest_framework_views
-from farhoodapp.views import (UserCreate, CreateProfileUser, UserEventView, EventCreateView, EventEditView,
+from farhoodapp.views import (UserCreate, UpdateProfileUser, UserEventView, EventCreateView, EventEditView,
                               CommentEventView, CreateCommentView, CreateActionView, CreateFollowEventMemberView,
                               EventActionView, RemoveEventMemberView, AddEventMemberView, CreateUnfollowEventMemberView,
                               FollowEventView, UnfollowEventView, ImportContacts, FriendsView, GetUserProfileView,
@@ -11,7 +11,7 @@ from farhoodapp.views import (UserCreate, CreateProfileUser, UserEventView, Even
 urlpatterns = [
                   url(r'^get_auth_token/$', rest_framework_views.obtain_auth_token, name='get_auth_token'),
                   url(r'^user/create/$', UserCreate.as_view()),
-                  url(r'^profile/$', CreateProfileUser.as_view()),
+                  url(r'^profile/$', UpdateProfileUser.as_view()),
                   url(r'^event/create/$', EventCreateView.as_view()),
                   url(r'^edit/event/$', EventEditView.as_view()),
                   url(r'^create/comment/$', CreateCommentView.as_view()),
