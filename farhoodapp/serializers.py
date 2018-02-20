@@ -89,7 +89,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'image',)
 
 
-class ProfileUpdateSerializer(serializers.ModelSerializer):
+class ProfileUpdateSerializer(ModelSerializer):
     phone_regex = RegexValidator(regex=r'^\+?[0,9]?\d{10,15}$',
                                  message="Phone number must be entered in the format: '+999999999999'. Minimum 10 and Maximum 15 digits allowed.")
     phone_number = serializers.CharField(validators=[phone_regex, UniqueValidator(queryset=User.objects.all())],

@@ -39,12 +39,13 @@ class UpdateProfileUser(APIView):
         user_data = request.user
         request_data = request.data.copy()
         request_data['is_active'] = True
-        serializer = ProfileUpdateSerializer(user_data, data=request_data)
+        serializer = ProfileUpdateSerializer(user_data, data=request_data, context={'request': request})
         if serializer.is_valid():
             user = serializer.save()
             user.temporary_profile = False
             user.save()
-            return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", ProfileUpdateSerializer(user).data)
+            return CustomResponse.create_response(True, status.HTTP_200_OK, "Success",
+                                                  ProfileUpdateSerializer(user, context={'request': request}).data)
         return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, str(serializer.errors))
 
 
