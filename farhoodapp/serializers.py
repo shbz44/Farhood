@@ -309,19 +309,16 @@ class EventUserSerializer(ModelSerializer):
 
 class EventSerializer(ModelSerializer):
     user_name = serializers.SerializerMethodField()
-    name_regex = RegexValidator(regex=r'^[a-zA-Z0-9\s,\#\.\-]+$',
-                                message='No special characters except space, comma and dashes')
-
-    name = serializers.CharField(validators=[name_regex], max_length=150)
-    description = serializers.CharField(validators=[name_regex], max_length=150)
-    location_name = serializers.CharField(validators=[name_regex], max_length=150)
-    location_address = serializers.CharField(validators=[name_regex], max_length=200)
 
     def create(self, validated_data):
         event = Event.objects.create(user=validated_data.get('user'), name=validated_data.get('name'),
                                      description=validated_data.get('description'),
                                      location_name=validated_data.get('location_name'),
-                                     location_address=validated_data.get('location_address'), )
+                                     location_address=validated_data.get('location_address'),
+                                     longitude=validated_data.get('longitude', 0.0),
+                                     latitude=validated_data.get('latitude', 0.0),
+                                     event_type=validated_data.get('event_type', 'coffee'),
+                                     scheduled_time=validated_data.get('scheduled_time'))
 
         users = validated_data.get('users')
         event_id = event.id
