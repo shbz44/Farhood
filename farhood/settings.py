@@ -10,6 +10,7 @@ SECRET_KEY = 'jp7ds&hs1nrx7ivv$v5lqp5v#c_aa%#w=!iqst3gq1ip-pxc!s'
 DEBUG = True
 ALLOWED_HOSTS = []
 AUTH_USER_MODEL = 'farhoodapp.User'
+DATE_FORMAT = ['%Y-%m-%d %H:%M:%S']
 
 INSTALLED_APPS = [
     'farhoodapp.apps.FarhoodappConfig',
