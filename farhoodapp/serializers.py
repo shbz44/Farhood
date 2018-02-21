@@ -3,7 +3,7 @@ from django.core.validators import RegexValidator
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from rest_framework.validators import UniqueValidator
-
+from django.db.models import Q
 from farhoodapp.models import Event, User, Comment, Action, EventMember
 
 
@@ -29,10 +29,17 @@ class UserSerializer(serializers.ModelSerializer):
                                          required=False)
 
     def create(self, validated_data):
-        user = User.objects._create_user(validated_data.get('email'), validated_data.get('password'))
-        if validated_data.get('phone_number'):
-            user.phone_number = validated_data.get('phone_number')
+        user = User.objects.filter(
+            Q(email=validated_data.get('email')) | Q(phone_number=validated_data.get('phone_number'))).first()
+        if user:
+            user.set_password(validated_data.get('password'))
+            user.temporary_profile = False
             user.save()
+        else:
+            user = User.objects._create_user(validated_data.get('email'), validated_data.get('password'))
+            if validated_data.get('phone_number'):
+                user.phone_number = validated_data.get('phone_number')
+                user.save()
         return user
 
     class Meta:
