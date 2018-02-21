@@ -5,8 +5,8 @@ from farhoodapp.serializers import (UserEventSerializer, EventCommentSerializer,
 
 
 def get_user_event(user_id):
-    events = Event.objects.filter(user_id=user_id).order_by('created_at')
-    result = UserEventSerializer(events, many=True)
+    events = Event.objects.filter(user_id=user_id).order_by('-created_at').first()
+    result = UserEventSerializer(events, many=False)
     return result.data
 
 

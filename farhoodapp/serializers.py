@@ -131,13 +131,13 @@ class TemporaryUserSerializer(serializers.ModelSerializer):
 
 class FriendsSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
-    event_name = serializers.SerializerMethodField()
+    event = serializers.SerializerMethodField()
     user_id = serializers.SerializerMethodField()
 
-    def get_event_name(self, obj):
-        events = Event.objects.filter(user_id=obj).first()
+    def get_event(self, obj):
+        event = Event.objects.filter(user_id=obj).order_by('-id').first()
         if events:
-            return events.name
+            return EventSerializer(event).data
         else:
             return ""
 
@@ -150,7 +150,7 @@ class FriendsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('name', 'event_name', 'user_id')
+        fields = ('name', 'event', 'user_id')
 
 
 class FriendsEventSerializer(serializers.Serializer):
