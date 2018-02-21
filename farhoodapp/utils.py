@@ -37,9 +37,9 @@ class CustomResponse():
     #     )
 
     @staticmethod
-    def validation_error(result_code,message, data):
+    def validation_error(result_code, message, data):
         raise ValidationError(
-            {"status": False, "code": result_code, "message":message,"data": data},
+            {"status": False, "code": result_code, "message": message, "data": data},
             status=status.HTTP_200_OK
         )
 
@@ -53,4 +53,11 @@ def raise_validation_error(error_dict):
         status=status.HTTP_200_OK
     )
 
-# def orderObject(order)
+
+def search_user(data):
+    user = User.objects.filter(Q(email=data.get('email')) | Q(phone_number=data.get('phone_number'))).first()
+    if user:
+        user.set_password(validated_data.get('password'))
+        user.temporary_profile = False
+        user.save()
+    return user

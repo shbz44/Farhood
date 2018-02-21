@@ -1,6 +1,6 @@
 from rest_framework import status, generics
 from rest_framework.views import APIView
-from farhoodapp.utils import CustomResponse
+from farhoodapp.utils import CustomResponse, search_user
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.parsers import JSONParser, MultiPartParser
@@ -23,18 +23,22 @@ class UserCreate(APIView):
             data['email'] = data['phone_number'] + "@dottech.info"
         else:
             data['email'] = data['email']
-        serializer = UserSerializer(data=data)
-        if serializer.is_valid():
-            user = serializer.save()
-            user.temporary_profile = False
-            user.save()
+        existing_user = search_user(data)
+        if existing_user:
             return CustomResponse.create_response(True, status.HTTP_200_OK, "Success",
-                                                  UserResponseSerializer(user).data)
+                                                  UserResponseSerializer(existing_user).data)
+        else:
+            serializer = UserSerializer(data=data)
+            if serializer.is_valid():
+                user = serializer.save()
+                user.temporary_profile = False
+                user.save()
+                return CustomResponse.create_response(True, status.HTTP_200_OK, "Success",
+                                                      UserResponseSerializer(user).data)
         return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, str(serializer.errors))
 
 
 class UpdateProfileUser(APIView):
-
     def put(self, request, format='json'):
         user_data = request.user
         request_data = request.data.copy()
@@ -100,7 +104,6 @@ class EventEditView(APIView):
 
 
 class CreateCommentView(APIView):
-
     def post(self, request, format='json'):
         request_data = request.data.copy()
         request_data['user'] = request.user.id
@@ -160,7 +163,6 @@ class CreateUnfollowEventMemberView(APIView):
 
 
 class AddEventMemberView(APIView):
-
     def post(self, request, format='json'):
         request_data = request.data.copy()
         request_data['user'] = request.user.id
