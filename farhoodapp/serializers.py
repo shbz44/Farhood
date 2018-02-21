@@ -139,7 +139,7 @@ class FriendsSerializer(serializers.ModelSerializer):
         if event:
             return EventSerializer(event).data
         else:
-            return ""
+            return {}
 
     def get_name(self, obj):
         # name = '{} {}'.format(obj.first_name, obj.last_name)
