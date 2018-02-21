@@ -1,4 +1,7 @@
+from django.db.models import Q
+
 from farhoodapp.exception import ValidationError
+from farhoodapp.models import User
 
 __author__ = 'DotTech Pvt. Ltd.'
 
@@ -57,7 +60,7 @@ def raise_validation_error(error_dict):
 def search_user(data):
     user = User.objects.filter(Q(email=data.get('email')) | Q(phone_number=data.get('phone_number'))).first()
     if user:
-        user.set_password(validated_data.get('password'))
+        user.set_password(data.get('password'))
         user.temporary_profile = False
         user.save()
     return user
