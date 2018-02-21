@@ -136,7 +136,7 @@ class FriendsSerializer(serializers.ModelSerializer):
 
     def get_event(self, obj):
         event = Event.objects.filter(user_id=obj).order_by('-id').first()
-        if events:
+        if event:
             return EventSerializer(event).data
         else:
             return ""
