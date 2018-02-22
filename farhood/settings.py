@@ -1,9 +1,5 @@
 import os
-# import datetime
 from datetime import timedelta
-
-
-# TOKEN_EXPIRE_TIME=datetime.timedelta(days=30)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'jp7ds&hs1nrx7ivv$v5lqp5v#c_aa%#w=!iqst3gq1ip-pxc!s'
@@ -23,6 +19,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
 ]
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',

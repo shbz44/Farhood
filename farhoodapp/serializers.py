@@ -197,13 +197,35 @@ class EventMemberSerializer(ModelSerializer):
     user = serializers.SerializerMethodField()
 
     def get_user(self, obj):
-        users = User.objects.filter(id=obj.user.id)
-        result = UserFriendEventSerializer(users, many=True)
+        users = User.objects.filter(id=obj.user.id).first()
+        result = UserFriendEventSerializer(users, many=False)
         return result.data
 
     class Meta:
         model = EventMember
         fields = ('user',)
+
+
+class UserEventMemberSerializer(ModelSerializer):
+    user_id = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+    phone_number = serializers.SerializerMethodField()
+
+    def get_user_id(self, obj):
+        userr = User.objects.filter(id=obj.user.id).first()
+        return userr.id
+
+    def get_name(self, obj):
+        userr = User.objects.filter(id=obj.user.id).first()
+        return str(userr.first_name) + " " + str(userr.last_name)
+
+    def get_phone_number(self, obj):
+        userr = User.objects.filter(id=obj.user.id).first()
+        return userr.phone_number
+
+    class Meta:
+        model = EventMember
+        fields = ('user_id', 'name', 'phone_number')
 
 
 class EventOrganisedSerializer(ModelSerializer):
@@ -248,13 +270,18 @@ class CombineNameSerializer(ModelSerializer):
 
 
 class UserEventSerializer(ModelSerializer):
-    user = UserAllSerializer()
+    user = serializers.SerializerMethodField()
     event_member = serializers.SerializerMethodField()
 
     def get_event_member(self, obj):
-        member = EventMember.objects.filter(event_id=obj, follow=False)
-        result = EventMemberSerializer(member, many=True)
+        member = EventMember.objects.filter(event_id=obj, follow=True)
+        # user = User.objects.filter(id=member.user).first()
+        result = UserEventMemberSerializer(member, many=True)
         return result.data
+
+    def get_user(self, obj):
+        name = '{} {}'.format(obj.user.first_name, obj.user.last_name)
+        return name
 
     class Meta:
         model = Event
