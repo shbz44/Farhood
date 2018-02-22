@@ -1,6 +1,6 @@
 from rest_framework import status, generics
 from rest_framework.views import APIView
-from farhoodapp.utils import CustomResponse, search_user
+from farhoodapp.utils import CustomResponse, search_user, connect_members_with_event
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.parsers import JSONParser, MultiPartParser
@@ -76,16 +76,15 @@ class UserImageView(APIView):
 
 
 class EventCreateView(generics.GenericAPIView):
-    # parser_classes = (JSONParser,)
     serializer_class = EventSerializer
 
     def post(self, request, format='json'):
         request_data = request.data.copy()
         request_data['user'] = request.user.id
-        # serializer = EventSerializer(data=request_data)
         serializer = self.get_serializer(data=request_data)
         if serializer.is_valid():
             event = serializer.save()
+            connect_members_with_event(event, request.data.get('users'))
             return CustomResponse.create_response(True, status.HTTP_200_OK, "Success", EventSerializer(event).data)
         return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, str(serializer.errors))
 

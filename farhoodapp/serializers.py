@@ -142,7 +142,6 @@ class FriendsSerializer(serializers.ModelSerializer):
             return {}
 
     def get_name(self, obj):
-        # name = '{} {}'.format(obj.first_name, obj.last_name)
         return obj.first_name
 
     def get_user_id(self, obj):
@@ -309,6 +308,11 @@ class EventUserSerializer(ModelSerializer):
 
 class EventSerializer(ModelSerializer):
     user_name = serializers.SerializerMethodField()
+    members = serializers.SerializerMethodField()
+
+    def get_members(self, event):
+        members = EventMember.objects.filter(event=event)
+        return FollowEventMemberSerializer(members, many=True).data
 
     def create(self, validated_data):
         event = Event.objects.create(user=validated_data.get('user'), name=validated_data.get('name'),
@@ -320,23 +324,6 @@ class EventSerializer(ModelSerializer):
                                      event_type=validated_data.get('event_type', 'coffee'),
                                      scheduled_time=validated_data.get('scheduled_time'))
 
-        users = validated_data.get('users')
-        event_id = event.id
-        if users:
-            for member in users:
-                try:
-                    phone_number = member.get('phone_number')
-                    user_id = User.objects.filter(phone_number=phone_number).first()
-                    request_data = {
-                        "user": user_id,
-                        "event": event_id,
-                    }
-                    serializer = FollowEventMemberSerializer(data=request_data)
-                    if serializer.is_valid():
-                        serializer.save()
-                except:
-                    pass
-
         return event
 
     def get_user_name(self, obj):
@@ -346,7 +333,7 @@ class EventSerializer(ModelSerializer):
     class Meta:
         model = Event
         fields = ('id', 'name', 'event_type', 'created_at', 'description', 'scheduled_time', 'longitude', 'latitude',
-                  'location_name', 'location_address', 'user', 'user_name',)
+                  'location_name', 'location_address', 'user', 'user_name', 'members')
 
 
 class CommentSerializer(ModelSerializer):

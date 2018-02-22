@@ -2,11 +2,13 @@ from django.db.models import Q
 
 from farhoodapp.exception import ValidationError
 from farhoodapp.models import User
+from farhoodapp.serializers import FollowEventMemberSerializer
 
 __author__ = 'DotTech Pvt. Ltd.'
 
 from rest_framework import status
 from rest_framework.response import Response
+import json
 
 
 class CustomResponse():
@@ -64,3 +66,21 @@ def search_user(data):
         user.temporary_profile = False
         user.save()
     return user
+
+
+def connect_members_with_event(event, users):
+    if users:
+        users = json.loads(users)
+        for member in users:
+            try:
+                phone_number = member.get('phone_number')
+                user = User.objects.filter(phone_number=phone_number).first()
+                request_data = {
+                    "user": user.id,
+                    "event": event.id,
+                }
+                serializer = FollowEventMemberSerializer(data=request_data)
+                if serializer.is_valid():
+                    serializer.save()
+            except:
+                pass
