@@ -71,7 +71,7 @@ def search_user(data):
 
 def connect_members_with_event(event, users):
     if users:
-        users = json.loads(users)
+#        users = json.loads(users)
         for member in users:
             try:
                 phone_number = member.get('phone_number')
