@@ -36,8 +36,8 @@ def upload_profile_image(instance, filename):
 class User(AbstractBaseUser):
     image = models.ImageField(upload_to=upload_profile_image, blank=True, null=True)
     email = models.EmailField(unique=True)
-    first_name = models.CharField(max_length=150, null=True, blank=True)
-    last_name = models.CharField(max_length=150, null=True, blank=True)
+    first_name = models.CharField(max_length=150, null=True, blank=True, default='')
+    last_name = models.CharField(max_length=150, null=True, blank=True, default='')
     nick_name = models.CharField(max_length=150, null=True, blank=True)
     username = models.CharField(max_length=50)
     account_id = models.CharField(max_length=10, null=True, blank=True)
