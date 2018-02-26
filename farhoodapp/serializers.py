@@ -149,7 +149,7 @@ class FriendsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('name', 'event', 'user_id')
+        fields = ('name', 'event', 'user_id', 'phone_number')
 
 
 class FriendsEventSerializer(serializers.Serializer):
