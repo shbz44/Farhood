@@ -269,13 +269,20 @@ class CombineNameSerializer(ModelSerializer):
         fields = ('name',)
 
 
+class CommentUserSerializer(ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = '__all__'
+
+
 class UserEventSerializer(ModelSerializer):
     user = serializers.SerializerMethodField()
+    user_id = serializers.SerializerMethodField()
     event_member = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
 
     def get_event_member(self, obj):
         member = EventMember.objects.filter(event_id=obj, follow=True)
-        # user = User.objects.filter(id=member.user).first()
         result = UserEventMemberSerializer(member, many=True)
         return result.data
 
@@ -283,10 +290,17 @@ class UserEventSerializer(ModelSerializer):
         name = '{} {}'.format(obj.user.first_name, obj.user.last_name)
         return name
 
+    def get_user_id(self, obj):
+        return obj.user.id
+
+    def get_comments(self, obj):
+        comments = Comment.objects.filter(event=obj).order_by('-created_at')
+        return CommentUserSerializer(comments, many=True).data
+
     class Meta:
         model = Event
         fields = ('id', 'name', 'event_type', 'created_at', 'description', 'scheduled_time', 'longitude', 'latitude',
-                  'location_name', 'location_address', 'user', 'event_member')
+                  'location_name', 'location_address', 'user', 'event_member', 'comments')
 
 
 class EventFriendSerializer(ModelSerializer):
