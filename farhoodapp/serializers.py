@@ -300,7 +300,7 @@ class UserEventSerializer(ModelSerializer):
     class Meta:
         model = Event
         fields = ('id', 'name', 'event_type', 'created_at', 'description', 'scheduled_time', 'longitude', 'latitude',
-                  'location_name', 'location_address', 'user', 'event_member', 'comments')
+                  'location_name', 'location_address', 'user', 'event_member', 'comments', 'user_id')
 
 
 class EventFriendSerializer(ModelSerializer):
