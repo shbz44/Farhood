@@ -270,9 +270,14 @@ class CombineNameSerializer(ModelSerializer):
 
 
 class CommentUserSerializer(ModelSerializer):
+    name = serializers.SerializerMethodField()
+
+    def get_name(self, obj):
+        return obj.user.first_name
+
     class Meta:
         model = Comment
-        fields = '__all__'
+        fields = ('user', 'event', 'message', 'name')
 
 
 class UserEventSerializer(ModelSerializer):
