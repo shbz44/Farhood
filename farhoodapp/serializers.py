@@ -384,8 +384,8 @@ class EventSerializer(ModelSerializer):
 
 class CommentSerializer(ModelSerializer):
     def create(self, validated_data):
-        comment = Comment.objects.create(event=validated_data.get('event'),
-                                         user=validated_data.get('user'),
+        comment = Comment.objects.create(event_id=validated_data.get('event'),
+                                         user_id=validated_data.get('user'),
                                          message=validated_data.get('message'))
         return comment
 
