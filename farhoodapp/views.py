@@ -106,7 +106,7 @@ class CreateCommentView(APIView):
     def post(self, request, format='json'):
         request_data = request.data.copy()
         request_data['user'] = request.user.id
-        event_id = int(request.POST.get('event'))
+        event_id = int(request.data.get('event'))
         if event_id:
             serializer = CommentSerializer(data=request_data)
             if serializer.is_valid():
