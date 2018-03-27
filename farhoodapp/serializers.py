@@ -221,7 +221,8 @@ class UserEventMemberSerializer(ModelSerializer):
 
     def get_name(self, obj):
         userr = User.objects.filter(id=obj.user.id).first()
-        return str(userr.first_name) + " " + str(userr.last_name)
+        name = '{} {}'.format(str(userr.first_name), str(userr.last_name))
+        return name
 
     def get_phone_number(self, obj):
         userr = User.objects.filter(id=obj.user.id).first()
@@ -277,7 +278,8 @@ class CommentUserSerializer(ModelSerializer):
     name = serializers.SerializerMethodField()
 
     def get_name(self, obj):
-        return obj.user.first_name + ' ' + obj.user.last_name
+        name = '{} {}'.format(obj.user.first_name, obj.user.last_name)
+        return name
 
     class Meta:
         model = Comment
@@ -440,7 +442,6 @@ class UserEventReactionSerializer(ModelSerializer):
     reaction = serializers.SerializerMethodField()
 
     def get_reaction(self, obj):
-        # import pdb;pdb.set_trace()
         if obj.reaction is True:
             return 'Like'
         elif obj.reaction is False:
