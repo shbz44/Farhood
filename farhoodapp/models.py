@@ -149,6 +149,15 @@ class Comment(models.Model):
         return str(self.id)
 
 
+class EventReaction(models.Model):
+    event = models.ForeignKey(Event)
+    user = models.ForeignKey(User)
+    reaction = models.NullBooleanField(null=True)
+
+    def __str__(self):
+        return str(self.id)
+
+
 class Action(models.Model):
     GOOD = 'good'
     BAD = 'bad'
@@ -171,6 +180,17 @@ class EventMember(models.Model):
     user = models.ForeignKey(User)
     event = models.ForeignKey(Event)
     follow = models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.id)
+
+
+class EventWishList(models.Model):
+    user = models.ForeignKey(User)
+    event = models.ForeignKey(Event)
+
+    class Meta:
+        unique_together = ("user", "event")
 
     def __str__(self):
         return str(self.id)

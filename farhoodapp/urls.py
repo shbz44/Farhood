@@ -6,7 +6,8 @@ from farhoodapp.views import (UserCreate, UpdateProfileUser, UserEventView, Even
                               CommentEventView, CreateCommentView, CreateActionView, CreateFollowEventMemberView,
                               EventActionView, RemoveEventMemberView, AddEventMemberView, CreateUnfollowEventMemberView,
                               FollowEventView, UnfollowEventView, ImportContacts, FriendsView, GetUserProfileView,
-                              UserImageView, LogoutView, UnfollowFriends, FollowFriends, ContactsView)
+                              UserImageView, LogoutView, UnfollowFriends, FollowFriends, ContactsView,
+                              CreateEventReactionView, CreateEventWishListView)
 
 urlpatterns = [
                   url(r'^get_auth_token/$', rest_framework_views.obtain_auth_token, name='get_auth_token'),
@@ -15,6 +16,8 @@ urlpatterns = [
                   url(r'^event/create/$', EventCreateView.as_view()),
                   url(r'^edit/event/$', EventEditView.as_view()),
                   url(r'^create/comment/$', CreateCommentView.as_view()),
+                  url(r'^create/reaction/$', CreateEventReactionView.as_view()),
+                  url(r'^create/wishlist/$', CreateEventWishListView.as_view()),
                   url(r'^action/create/$', CreateActionView.as_view()),
                   url(r'^add/member/$', AddEventMemberView.as_view()),
                   url(r'^follow/member/$', CreateFollowEventMemberView.as_view()),

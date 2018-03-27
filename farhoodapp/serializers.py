@@ -1,10 +1,11 @@
 import re
+
 from django.core.validators import RegexValidator
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from rest_framework.validators import UniqueValidator
 
-from farhoodapp.models import Event, User, Comment, Action, EventMember
+from farhoodapp.models import (Event, User, Comment, Action, EventMember, EventReaction, EventWishList, )
 
 
 class EmailValidator(object):
@@ -23,7 +24,8 @@ class UserSerializer(serializers.ModelSerializer):
         validators=[EmailValidator(message="Invaid email address"), UniqueValidator(queryset=User.objects.all())],
         required=True)
     phone_regex = RegexValidator(regex=r'^\+?[0,9]?\d{10,15}$',
-                                 message="Phone number must be entered in the format: '+999999999999'. Minimum 10 and Maximum 15 digits allowed.")
+                                 message="Phone number must be entered in the format: '+999999999999'. "
+                                         "Minimum 10 and Maximum 15 digits allowed.")
     phone_number = serializers.CharField(validators=[phone_regex, UniqueValidator(queryset=User.objects.all())],
                                          max_length=15, allow_null=True, allow_blank=True,
                                          required=False)
@@ -52,7 +54,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         validators=[EmailValidator(message="Invaid email address"), UniqueValidator(queryset=User.objects.all())],
         required=True)
     phone_regex = RegexValidator(regex=r'^\+?[0,9]?\d{10,15}$',
-                                 message="Phone number must be entered in the format: '+999999999999'. Minimum 10 and Maximum 15 digits allowed.")
+                                 message="Phone number must be entered in the format: '+999999999999'. "
+                                         "Minimum 10 and Maximum 15 digits allowed.")
     phone_number = serializers.CharField(validators=[phone_regex, UniqueValidator(queryset=User.objects.all())],
                                          max_length=15, allow_null=True, allow_blank=True,
                                          required=False)
@@ -91,7 +94,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class ProfileUpdateSerializer(ModelSerializer):
     phone_regex = RegexValidator(regex=r'^\+?[0,9]?\d{10,15}$',
-                                 message="Phone number must be entered in the format: '+999999999999'. Minimum 10 and Maximum 15 digits allowed.")
+                                 message="Phone number must be entered in the format: '+999999999999'. "
+                                         "Minimum 10 and Maximum 15 digits allowed.")
     phone_number = serializers.CharField(validators=[phone_regex, UniqueValidator(queryset=User.objects.all())],
                                          max_length=15, allow_null=True, allow_blank=True,
                                          required=False)
@@ -273,11 +277,22 @@ class CommentUserSerializer(ModelSerializer):
     name = serializers.SerializerMethodField()
 
     def get_name(self, obj):
-        return obj.user.first_name
+        return obj.user.first_name + ' ' + obj.user.last_name
 
     class Meta:
         model = Comment
         fields = ('user', 'event', 'message', 'name')
+
+
+class EventReactionUserSerializer(ModelSerializer):
+    name = serializers.SerializerMethodField()
+
+    def get_name(self, obj):
+        return obj.user.first_name + ' ' + obj.user.last_name
+
+    class Meta:
+        model = EventReaction
+        fields = ('user', 'event', 'reaction', 'name')
 
 
 class UserEventSerializer(ModelSerializer):
@@ -285,6 +300,7 @@ class UserEventSerializer(ModelSerializer):
     user_id = serializers.SerializerMethodField()
     event_member = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
+    reaction = serializers.SerializerMethodField()
 
     def get_event_member(self, obj):
         member = EventMember.objects.filter(event_id=obj, follow=True)
@@ -302,10 +318,14 @@ class UserEventSerializer(ModelSerializer):
         comments = Comment.objects.filter(event=obj).order_by('-created_at')
         return CommentUserSerializer(comments, many=True).data
 
+    def get_reaction(self, obj):
+        reaction = EventReaction.objects.filter(event=obj).first()
+        return UserEventReactionSerializer(reaction, many=False).data
+
     class Meta:
         model = Event
         fields = ('id', 'name', 'event_type', 'created_at', 'description', 'scheduled_time', 'longitude', 'latitude',
-                  'location_name', 'location_address', 'user', 'event_member', 'comments', 'user_id')
+                  'location_name', 'location_address', 'user', 'user_id', 'event_member', 'comments', 'reaction')
 
 
 class EventFriendSerializer(ModelSerializer):
@@ -392,6 +412,45 @@ class CommentSerializer(ModelSerializer):
     class Meta:
         model = Comment
         fields = '__all__'
+
+
+class EventReactionSerializer(ModelSerializer):
+    def create(self, validated_data):
+        reaction = EventReaction.objects.create(event=validated_data.get('event'),
+                                                user=validated_data.get('user'),
+                                                reaction=validated_data.get('reaction', None))
+        return reaction
+
+    class Meta:
+        model = EventReaction
+        fields = '__all__'
+
+
+class EventWishListSerializer(ModelSerializer):
+    def create(self, validate_data):
+        wish_list = EventWishList.objects.create(event=validate_data.get('event'), user=validate_data.get('user'))
+        return wish_list
+
+    class Meta:
+        model = EventWishList
+        fields = '__all__'
+
+
+class UserEventReactionSerializer(ModelSerializer):
+    reaction = serializers.SerializerMethodField()
+
+    def get_reaction(self, obj):
+        # import pdb;pdb.set_trace()
+        if obj.reaction is True:
+            return 'Like'
+        elif obj.reaction is False:
+            return 'Dislike'
+        else:
+            return 'null'
+
+    class Meta:
+        model = EventReaction
+        fields = ('event', 'reaction',)
 
 
 class ActionSerializer(ModelSerializer):

@@ -1,17 +1,19 @@
+from django.core.serializers import json
 from rest_framework import status, generics
 from rest_framework.views import APIView
 from farhoodapp.utils import CustomResponse, search_user, connect_members_with_event
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from rest_framework.parsers import JSONParser, MultiPartParser
-from farhoodapp.models import (User, Event, EventMember, )
+from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
+from farhoodapp.models import (User, Event, EventMember, EventReaction)
 from farhoodapp.services import (get_user_event, get_event_comments, get_event_actions, get_follow_events,
                                  get_unfollow_events, remove_event_member, get_friends_list, get_user_profile,
                                  get_user_image_url, get_contacts_list)
 from farhoodapp.serializers import (UserSerializer, EventSerializer, CommentSerializer, ActionSerializer,
                                     AddEventMemberSerializer, UnfollowEventMemberSerializer,
                                     FollowEventMemberSerializer, TemporaryUserSerializer, ProfileSerializer,
-                                    UserResponseSerializer, ProfileUpdateSerializer)
+                                    UserResponseSerializer, ProfileUpdateSerializer, EventReactionSerializer,
+                                    EventWishListSerializer)
 
 
 class UserCreate(APIView):
@@ -103,7 +105,8 @@ class EventEditView(APIView):
 
 
 class CreateCommentView(APIView):
-    def post(self, request, format='json'):
+
+    def post(self, request):
         request_data = request.data.copy()
         request_data['user'] = request.user.id
         event_id = int(request.data.get('event'))
@@ -113,6 +116,42 @@ class CreateCommentView(APIView):
                 comment = serializer.save()
                 return CustomResponse.create_response(True, status.HTTP_200_OK, "Success",
                                                       CommentSerializer(comment).data)
+            return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, str(serializer.errors))
+
+
+class CreateEventWishListView(APIView):
+
+    def post(self, request):
+        request_data = request.data.copy()
+        request_data['user'] = request.user.id
+        event_id = int(request.data.get('event'))
+        if event_id:
+            serializer = EventWishListSerializer(data=request_data)
+            if serializer.is_valid():
+                wish_list = serializer.save()
+                return CustomResponse.create_response(True, status.HTTP_200_OK, "Success",
+                                                      EventWishListSerializer(wish_list).data)
+            return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, str(serializer.errors))
+
+
+class CreateEventReactionView(APIView):
+
+    def post(self, request):
+        request_data = request.data.copy()
+        request_data['user'] = request.user.id
+        user_id = request.user.id
+        event_id = int(request.data.get('event'))
+        event_reaction = EventReaction.objects.filter(event_id=event_id, user_id=user_id).first()
+
+        if event_id:
+            if event_reaction:
+                serializer = EventReactionSerializer(data=request_data, instance=event_reaction)
+            else:
+                serializer = EventReactionSerializer(data=request_data)
+            if serializer.is_valid():
+                reaction = serializer.save()
+                return CustomResponse.create_response(True, status.HTTP_200_OK, "Success",
+                                                      EventReactionSerializer(reaction).data)
             return CustomResponse.create_error_response(status.HTTP_400_BAD_REQUEST, str(serializer.errors))
 
 
