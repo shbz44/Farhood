@@ -396,7 +396,8 @@ class EventSerializer(ModelSerializer):
 
     def get_user_name(self, obj):
         user = User.objects.filter(id=obj.user.id).first()
-        return str(user.first_name) + ' ' + str(user.last_name)
+        name = '{} {}'.format(str(user.first_name), str(user.last_name))
+        return name
 
     class Meta:
         model = Event
